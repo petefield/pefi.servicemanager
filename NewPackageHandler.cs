@@ -20,8 +20,8 @@ public sealed class ProcessPackageWebhookProcessor(ILogger<ProcessPackageWebhook
         logger.LogInformation("Updated Image :  {image}", url);
 
         DockerClient client = new DockerClientConfiguration(
-            new Uri("unix:///var/run/docker.sock"))
-             .CreateClient();
+            new Uri("http://127.0.0.1:2375"))
+            .CreateClient();
 
         IList<ContainerListResponse> containers = await client.Containers.ListContainersAsync(
             new ContainersListParameters()
