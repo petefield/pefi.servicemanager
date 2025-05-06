@@ -9,7 +9,7 @@ namespace pefi.servicemanager;
 
 public sealed class ProcessPackageWebhookProcessor(ILogger<ProcessPackageWebhookProcessor> logger) : WebhookEventProcessor
 {
-    protected async override Task ProcessRegistryPackageWebhookAsync(WebhookHeaders headers, RegistryPackageEvent ProcessPackageWebhookAsync, RegistryPackageAction action)
+    protected async override Task ProcessRegistryPackageWebhookAsync(WebhookHeaders headers, RegistryPackageEvent evt, RegistryPackageAction action)
     {
         //stop existing docker container
         //remove existin docker container
@@ -17,9 +17,8 @@ public sealed class ProcessPackageWebhookProcessor(ILogger<ProcessPackageWebhook
         //run new docker image
 
 
-        logger.LogInformation("Received package webhook: {HookId}", headers.HookId);
-        logger.LogInformation("Action: {action}", action);
-        logger.LogInformation("Package: {Package}", ProcessPackageWebhookAsync.Package.Name);
+        logger.LogInformation("Package {packageName}:{tag}", evt.Package.Name, evt.Package.PackageVersion.PackageUrl );
+
         DockerClient client = new DockerClientConfiguration(
             new Uri("unix:///var/run/docker.sock"))
              .CreateClient();
@@ -32,7 +31,7 @@ public sealed class ProcessPackageWebhookProcessor(ILogger<ProcessPackageWebhook
 
         foreach (var container in containers)
         {
-            logger.LogInformation("container {container}", container.Names.First());
+            logger.LogInformation("container {container}", container.Image);
         }
     }
 }
