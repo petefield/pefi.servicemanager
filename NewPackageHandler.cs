@@ -34,13 +34,18 @@ public sealed class ProcessPackageWebhookProcessor(ILogger<ProcessPackageWebhook
             logger.LogInformation("Container :  {container}", c.Image);
         }
 
-        var container = containers.First(c => c.Image == url);
+        var container = containers.FirstOrDefault(c => c.Image == url);
 
-        await client.Containers.StopContainerAsync(container.ID, new ContainerStopParameters());
+        if (container != null)
+        {
+            logger.LogInformation("Stopping Container: {image}", container.Names);
+            await client.Containers.StopContainerAsync(container.ID, new ContainerStopParameters());
+            await client.Containers.RemoveContainerAsync(container.ID, new ContainerRemoveParameters());
+        }
 
-        await client.Containers.RemoveContainerAsync(container.ID, new ContainerRemoveParameters());
-        
-       
+
+
+
 
         await client.Images.DeleteImageAsync(url, new ImageDeleteParameters()
         {
