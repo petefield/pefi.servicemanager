@@ -29,6 +29,11 @@ public sealed class ProcessPackageWebhookProcessor(ILogger<ProcessPackageWebhook
                 Limit = 100
             });
 
+        foreach(var c in containers)
+        {
+            logger.LogInformation("Container :  {container}", c.Image);
+        }
+
         var container = containers.First(c => c.Image == url);
 
         await client.Containers.StopContainerAsync(container.ID, new ContainerStopParameters());
