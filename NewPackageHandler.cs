@@ -65,6 +65,7 @@ public sealed class ProcessPackageWebhookProcessor(ILogger<ProcessPackageWebhook
         }
 
 
+        logger.LogInformation("creating image: {image}", url);
 
 
         await client.Images.CreateImageAsync(new ImagesCreateParameters()
@@ -74,6 +75,8 @@ public sealed class ProcessPackageWebhookProcessor(ILogger<ProcessPackageWebhook
         }, 
         new AuthConfig(),
         new Progress<JSONMessage>());
+
+        logger.LogInformation("creating conainer");
 
 
         await client.Containers.CreateContainerAsync(new CreateContainerParameters()
