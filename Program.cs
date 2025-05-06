@@ -8,8 +8,6 @@ builder.Services.AddSingleton<WebhookEventProcessor, ProcessPackageWebhookProces
 
 var app = builder.Build();
 
-app.UseHttpsRedirection();
-
 app.UseRouting()
     .UseEndpoints(endpoints => endpoints.MapGitHubWebhooks("service-manager/newpackage"));
 

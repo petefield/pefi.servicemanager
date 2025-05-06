@@ -3,7 +3,7 @@ using Octokit.Webhooks;
 using Octokit.Webhooks.Events.Package;
 
 namespace pefi.servicemanager;
-public sealed class ProcessPackageWebhookProcessor : WebhookEventProcessor
+public sealed class ProcessPackageWebhookProcessor(ILogger<ProcessPackageWebhookProcessor> logger) : WebhookEventProcessor
 {
     protected override Task ProcessPackageWebhookAsync(WebhookHeaders headers, PackageEvent ProcessPackageWebhookAsync, PackageAction action)
     {
@@ -12,10 +12,9 @@ public sealed class ProcessPackageWebhookProcessor : WebhookEventProcessor
         //pull new docker image
         //run new docker image
 
-        Console.WriteLine($"Received package webhook: {headers.HookId}");
-        Console.WriteLine($"Action: {action}");
-        Console.WriteLine($"Package: {ProcessPackageWebhookAsync.Package.Name}");
-        
+        logger.LogInformation("Received package webhook: {HookId}", headers.HookId);
+        logger.LogInformation("Action: {Action}", action);
+        logger.LogInformation("Package: {Package}", ProcessPackageWebhookAsync.Package.Name);
 
         return Task.CompletedTask;
     }
