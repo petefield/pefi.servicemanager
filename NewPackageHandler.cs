@@ -11,6 +11,12 @@ public sealed class ProcessPackageWebhookProcessor : WebhookEventProcessor
         //remove existin docker container
         //pull new docker image
         //run new docker image
+
+        Console.WriteLine($"Received package webhook: {headers.Id}");
+        Console.WriteLine($"Action: {action}");
+        Console.WriteLine($"Package: {ProcessPackageWebhookAsync.Package.Name}");
+        
+
         return Task.CompletedTask;
     }
 }
