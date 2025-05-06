@@ -17,9 +17,9 @@ public sealed class ProcessPackageWebhookProcessor(ILogger<ProcessPackageWebhook
         //run new docker image
 
 
-        logger.LogError("Received package webhook: {HookId}", headers.HookId);
-        logger.LogError("Action: {Action}", action);
-        logger.LogError("Package: {Package}", ProcessPackageWebhookAsync.Package.Name);
+        logger.LogInformation("Received package webhook: {HookId}", headers.HookId);
+        logger.LogInformation("Action: {action}", action);
+        logger.LogInformation("Package: {Package}", ProcessPackageWebhookAsync.Package.Name);
         DockerClient client = new DockerClientConfiguration(
             new Uri("unix:///var/run/docker.sock"))
              .CreateClient();
@@ -29,5 +29,10 @@ public sealed class ProcessPackageWebhookProcessor(ILogger<ProcessPackageWebhook
             {
                 Limit = 10,
             });
+
+        foreach (var container in containers)
+        {
+            logger.LogInformation("container {container}", container.Names.First());
+        }
     }
 }
