@@ -15,6 +15,8 @@ public sealed class ProcessPackageWebhookProcessor(ILogger<ProcessPackageWebhook
         //pull new docker image
         //run new docker image
 
+        throw new Exception("test");
+
         logger.LogInformation("Received package webhook: {HookId}", headers.HookId);
         logger.LogInformation("Action: {Action}", action);
         logger.LogInformation("Package: {Package}", ProcessPackageWebhookAsync.Package.Name);
