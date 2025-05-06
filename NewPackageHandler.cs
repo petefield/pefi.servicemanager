@@ -1,11 +1,13 @@
 ﻿using Octokit.Webhooks.Events;
 using Octokit.Webhooks;
 using Octokit.Webhooks.Events.Package;
+using Docker.DotNet;
+using Docker.DotNet.Models;
 
 namespace pefi.servicemanager;
 public sealed class ProcessPackageWebhookProcessor(ILogger<ProcessPackageWebhookProcessor> logger) : WebhookEventProcessor
 {
-    protected override Task ProcessPackageWebhookAsync(WebhookHeaders headers, PackageEvent ProcessPackageWebhookAsync, PackageAction action)
+    protected async override Task ProcessPackageWebhookAsync(WebhookHeaders headers, PackageEvent ProcessPackageWebhookAsync, PackageAction action)
     {
         //stop existing docker container
         //remove existin docker container
@@ -15,7 +17,13 @@ public sealed class ProcessPackageWebhookProcessor(ILogger<ProcessPackageWebhook
         logger.LogInformation("Received package webhook: {HookId}", headers.HookId);
         logger.LogInformation("Action: {Action}", action);
         logger.LogInformation("Package: {Package}", ProcessPackageWebhookAsync.Package.Name);
+        DockerClient client = new DockerClientConfiguration()
+             .CreateClient();
 
-        return Task.CompletedTask;
+        IList<ContainerListResponse> containers = await client.Containers.ListContainersAsync(
+            new ContainersListParameters()
+            {
+                Limit = 10,
+            });
     }
 }
