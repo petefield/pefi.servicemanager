@@ -76,12 +76,13 @@ public sealed class ProcessPackageWebhookProcessor(ILogger<ProcessPackageWebhook
         new AuthConfig(),
         new Progress<JSONMessage>());
 
-        logger.LogInformation("creating conainer");
+        logger.LogInformation("creating container {name}",  evt.Package.Name);
 
 
-        await client.Containers.CreateContainerAsync(new CreateContainerParameters()
+        var newContainer = await client.Containers.CreateContainerAsync(new CreateContainerParameters()
         {
             Image = url,
+            Name = evt.Package.Name,
             ExposedPorts = new Dictionary<string, EmptyStruct>
             {
                 { "80", new EmptyStruct() }
@@ -93,7 +94,13 @@ public sealed class ProcessPackageWebhookProcessor(ILogger<ProcessPackageWebhook
                     { "80", new List<PortBinding> { new PortBinding { HostPort = "80" } } }
                 }
             }
+
         });
+
+        logger.LogInformation("starting conainer {name}", newContainer.ID);
+
+
+        await client.Containers.StartContainerAsync(newContainer.ID, new ContainerStartParameters());
 
     }
 }
