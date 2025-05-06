@@ -55,10 +55,17 @@ public sealed class ProcessPackageWebhookProcessor(ILogger<ProcessPackageWebhook
 
         var image = images.FirstOrDefault(i => i.RepoTags != null && i.RepoTags.Contains(url));
 
-        await client.Images.DeleteImageAsync(url, new ImageDeleteParameters()
+        if (image != null)
         {
-            Force = true,
-        });
+            logger.LogInformation("Removing image: {image}", image.ID);
+            await client.Images.DeleteImageAsync(url, new ImageDeleteParameters()
+            {
+                Force = true,
+            });
+        }
+
+
+
 
         await client.Images.CreateImageAsync(new ImagesCreateParameters()
         {
