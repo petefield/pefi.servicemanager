@@ -5,6 +5,7 @@ using pefi.servicemanager;
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddSingleton<WebhookEventProcessor, ProcessPackageWebhookProcessor>();
+builder.Logging.AddConsole();
 
 var app = builder.Build();
 

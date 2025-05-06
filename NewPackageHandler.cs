@@ -18,8 +18,8 @@ public sealed class ProcessPackageWebhookProcessor(ILogger<ProcessPackageWebhook
         logger.LogInformation("Received package webhook: {HookId}", headers.HookId);
         logger.LogInformation("Action: {Action}", action);
         logger.LogInformation("Package: {Package}", ProcessPackageWebhookAsync.Package.Name);
-        
-        DockerClient client = new DockerClientConfiguration()
+        DockerClient client = new DockerClientConfiguration(
+            new Uri("unix:///var/run/docker.sock"))
              .CreateClient();
 
         IList<ContainerListResponse> containers = await client.Containers.ListContainersAsync(
