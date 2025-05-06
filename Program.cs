@@ -4,7 +4,7 @@ using pefi.servicemanager;
 
 var builder = WebApplication.CreateBuilder(args);
 
-builder.Services.AddSingleton<WebhookEventProcessor, ProcessPackageWebhookProcessor>();
+//builder.Services.AddSingleton<WebhookEventProcessor, ProcessPackageWebhookProcessor>();
 
 var app = builder.Build();
 
