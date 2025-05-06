@@ -16,8 +16,8 @@ public sealed class ProcessPackageWebhookProcessor(ILogger<ProcessPackageWebhook
         //pull new docker image
         //run new docker image
 
-
-        logger.LogInformation("Package {packageName}:{tag}", evt.Package.Name, evt.Package.PackageVersion.PackageUrl );
+        var url = evt.Package.PackageVersion.PackageUrl;
+        logger.LogInformation("Updated Image :  {image}", url);
 
         DockerClient client = new DockerClientConfiguration(
             new Uri("unix:///var/run/docker.sock"))
@@ -29,6 +29,33 @@ public sealed class ProcessPackageWebhookProcessor(ILogger<ProcessPackageWebhook
                 Limit = 100
             });
 
+        var container = containers.First(c => c.Image == url);
+
+        await client.Containers.StopContainerAsync(container.ID, new ContainerStopParameters());
+
+        await client.Containers.RemoveContainerAsync(container.ID, new ContainerRemoveParameters());
+        
+        await client.Images.DeleteImageAsync(url, new ImageDeleteParameters()
+        {
+            Force = true,
+        });
+
+        await client.Containers.CreateContainerAsync(new CreateContainerParameters()
+        {
+            Image = url,
+            ExposedPorts = new Dictionary<string, EmptyStruct>
+            {
+                { "80", new EmptyStruct() }
+            },
+            HostConfig = new HostConfig
+            {
+                PortBindings = new Dictionary<string, IList<PortBinding>>
+                {
+                    { "80", new List<PortBinding> { new PortBinding { HostPort = "80" } } }
+                }
+            }
+        });
+       
         foreach (var container in containers)
         {
             logger.LogInformation("container {container}", container.Image);
