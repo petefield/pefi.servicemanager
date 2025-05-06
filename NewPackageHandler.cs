@@ -40,10 +40,21 @@ public sealed class ProcessPackageWebhookProcessor(ILogger<ProcessPackageWebhook
 
         await client.Containers.RemoveContainerAsync(container.ID, new ContainerRemoveParameters());
         
+       
+
         await client.Images.DeleteImageAsync(url, new ImageDeleteParameters()
         {
             Force = true,
         });
+
+        await client.Images.CreateImageAsync(new ImagesCreateParameters()
+        {
+            FromImage = url,
+            Tag = "latest"
+        }, 
+        new AuthConfig(),
+        new Progress<JSONMessage>());
+
 
         await client.Containers.CreateContainerAsync(new CreateContainerParameters()
         {
