@@ -82,19 +82,7 @@ public sealed class ProcessPackageWebhookProcessor(ILogger<ProcessPackageWebhook
         var newContainer = await client.Containers.CreateContainerAsync(new CreateContainerParameters()
         {
             Image = url,
-            Name = evt.Package.Name,
-            ExposedPorts = new Dictionary<string, EmptyStruct>
-            {
-                { "80", new EmptyStruct() }
-            },
-            HostConfig = new HostConfig
-            {
-                PortBindings = new Dictionary<string, IList<PortBinding>>
-                {
-                    { "80", new List<PortBinding> { new PortBinding { HostPort = "80" } } }
-                }
-            }
-
+            Name = evt.Package.Name
         });
 
         logger.LogInformation("starting conainer {name}", newContainer.ID);
