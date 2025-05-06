@@ -27,4 +27,4 @@ RUN dotnet publish "./pefi.servicemanager.csproj" -c Debug -o /app/publish /p:Us
 FROM base AS final
 WORKDIR /app
 COPY --from=publish /app/publish .
-ENTRYPOINT ["dotnet", "pefi.servicemanager.dll"]
+ENTRYPOINT ["dotnet", "pefi.servicemanager.dll", "--urls=http://*:9090"]
