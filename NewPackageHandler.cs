@@ -26,7 +26,7 @@ public sealed class ProcessPackageWebhookProcessor(ILogger<ProcessPackageWebhook
         IList<ContainerListResponse> containers = await client.Containers.ListContainersAsync(
             new ContainersListParameters()
             {
-                Limit = 10,
+                Limit = 100
             });
 
         foreach (var container in containers)
