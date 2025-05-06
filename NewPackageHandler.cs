@@ -55,10 +55,6 @@ public sealed class ProcessPackageWebhookProcessor(ILogger<ProcessPackageWebhook
                 }
             }
         });
-       
-        foreach (var container in containers)
-        {
-            logger.LogInformation("container {container}", container.Image);
-        }
+
     }
 }
