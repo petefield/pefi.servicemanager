@@ -11,7 +11,7 @@ public class DockerManager : IDockerManager
 
     public Dictionary<string, int> ports = new()
     {        
-        { "pefie.home", 5551 }
+        { "pefi.home", 5551 }
     };
 
     public DockerManager(ILogger<DockerManager> logger)
