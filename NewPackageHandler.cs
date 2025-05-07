@@ -1,94 +1,54 @@
 ﻿using Octokit.Webhooks.Events;
 using Octokit.Webhooks;
-using Octokit.Webhooks.Events.Package;
-using Docker.DotNet;
-using Docker.DotNet.Models;
 using Octokit.Webhooks.Events.RegistryPackage;
 
 namespace pefi.servicemanager;
 
-public sealed class ProcessPackageWebhookProcessor(ILogger<ProcessPackageWebhookProcessor> logger) : WebhookEventProcessor
+public sealed class ProcessRegistryPackageWebhookProcessor : WebhookEventProcessor
 {
+    IDockerManager _dockerManager;
+    ILogger<ProcessRegistryPackageWebhookProcessor> _logger;
+
+    public ProcessRegistryPackageWebhookProcessor(IDockerManager dockerManager, ILogger<ProcessRegistryPackageWebhookProcessor> logger)
+    {
+        _dockerManager = dockerManager;
+        _logger = logger;
+    }
+
     protected async override Task ProcessRegistryPackageWebhookAsync(WebhookHeaders headers, RegistryPackageEvent evt, RegistryPackageAction action)
     {
-        //stop existing docker container
-        //remove existin docker container
-        //pull new docker image
-        //run new docker image
+        var packageUrl = evt.Package.PackageVersion.PackageUrl;
+        var packageName = evt.Package.Name;
 
-        var url = evt.Package.PackageVersion.PackageUrl;
-        logger.LogInformation("Updated Image :  {image}", url);
+        _logger.LogInformation("Updated Image :  {image}", packageUrl);
 
-        DockerClient client = new DockerClientConfiguration(
-            new Uri("http://host.docker.internal:2375"))
-            .CreateClient();
+        var currentContainer = await _dockerManager.GetContainerFromImageUrl(packageUrl);
 
-        IList<ContainerListResponse> containers = await client.Containers.ListContainersAsync(
-            new ContainersListParameters()
-            {
-                Limit = 100
-            });
-
-        foreach(var c in containers)
+        if (currentContainer != null)
         {
-            logger.LogInformation("Container :  {container}", c.Image);
+            _logger.LogInformation("Stopping Container: {container_name}", currentContainer.Names);
+            await _dockerManager.StopContainer(currentContainer.ID); // Ensure the container is stopped before removing it
+
+            _logger.LogInformation("Removing Container: {container_name}", currentContainer.Names);
+            await _dockerManager.RemoveContainer(currentContainer.ID);
         }
 
-        var container = containers.FirstOrDefault(c => c.Image == url);
+        var currentImage = await _dockerManager.GetImageFromImageUrl(packageUrl);
 
-        if (container != null)
+        if (currentImage != null)
         {
-            logger.LogInformation("Stopping Container: {image}", container.Names);
-            await client.Containers.StopContainerAsync(container.ID, new ContainerStopParameters());
-            await client.Containers.RemoveContainerAsync(container.ID, new ContainerRemoveParameters());
+            _logger.LogInformation("Removing image: {image_id}", currentImage.ID);
+            await _dockerManager.DeleteImage(packageUrl); // Wait for the image to be deleted before proceeding
         }
 
-        var images = await client.Images.ListImagesAsync(new ImagesListParameters()
-        {
-            All = true
-        });
+        _logger.LogInformation("Creating image: {image_url}", packageUrl);
+         await _dockerManager.CreateImage(packageUrl);
 
-        foreach (var i in images)
-        {
-            logger.LogInformation("Image :  {tags}", string.Join(",", i.RepoTags));
-        }
+        _logger.LogInformation("Creating container '{packageName}' from image '{image_url}'", packageName, packageUrl);
+        var newContainer = await _dockerManager.CreateContainer(packageUrl, packageName);
 
-        var image = images.FirstOrDefault(i => i.RepoTags != null && i.RepoTags.Contains(url));
-
-        if (image != null)
-        {
-            logger.LogInformation("Removing image: {image}", image.ID);
-            await client.Images.DeleteImageAsync(url, new ImageDeleteParameters()
-            {
-                Force = true,
-            });
-        }
-
-
-        logger.LogInformation("creating image: {image}", url);
-
-
-        await client.Images.CreateImageAsync(new ImagesCreateParameters()
-        {
-            FromImage = url,
-            Tag = "latest"
-        }, 
-        new AuthConfig(),
-        new Progress<JSONMessage>());
-
-        logger.LogInformation("creating container {name}",  evt.Package.Name);
-
-
-        var newContainer = await client.Containers.CreateContainerAsync(new CreateContainerParameters()
-        {
-            Image = url,
-            Name = evt.Package.Name
-        });
-
-        logger.LogInformation("starting conainer {name}", newContainer.ID);
-
-
-        await client.Containers.StartContainerAsync(newContainer.ID, new ContainerStartParameters());
-
+        _logger.LogInformation("Starting container {container_name}", string.Join(" | ", newContainer.Names));
+        await _dockerManager.StartContainer(newContainer.ID);
     }
+
 }
