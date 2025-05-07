@@ -65,13 +65,11 @@ public class DockerManager : IDockerManager
 
     public async Task<ContainerListResponse?> CreateContainer(string packageUrl, string packageName)
     {
-        var exposedPorts = ports.TryGetValue(packageName, out var portNo)
-            ? (IDictionary<string, EmptyStruct>)new Dictionary<string, object> {
-                    { "8080", new { HostPort = portNo } }
-                }
+        var hostPort = ports.TryGetValue(packageName, out var portNo)
+            ? portNo.ToString()
             : null;
 
-        if (exposedPorts == null)
+        if (hostPort == null)
         {
             _logger.LogWarning("No exposed ports found for container: {container_name}", packageName);
         }
@@ -84,7 +82,16 @@ public class DockerManager : IDockerManager
         {
             Image = packageUrl,
             Name = packageName,
-            ExposedPorts = exposedPorts
+            HostConfig = new HostConfig()
+            {
+               PortBindings = new Dictionary<string, IList<PortBinding>>
+
+                {
+
+                    { "8080", new List<PortBinding> { new PortBinding() { HostPort = hostPort } } }
+
+                }
+            }
         });
 
         var containers = await _dockerClient.Containers.ListContainersAsync(new ContainersListParameters { All = true });
