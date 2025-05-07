@@ -71,6 +71,15 @@ public class DockerManager : IDockerManager
                 }
             : null;
 
+        if (exposedPorts == null)
+        {
+            _logger.LogWarning("No exposed ports found for container: {container_name}", packageName);
+        }
+        else {
+            _logger.LogWarning("exposing port {porNumber}", portNo);
+        }
+
+
         var createContainerResponse = await _dockerClient.Containers.CreateContainerAsync(new CreateContainerParameters()
         {
             Image = packageUrl,
