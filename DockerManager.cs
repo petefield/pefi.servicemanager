@@ -82,15 +82,16 @@ public class DockerManager : IDockerManager
         {
             Image = packageUrl,
             Name = packageName,
+            ExposedPorts = new Dictionary<string, EmptyStruct>
+            {
+                { "8080", new EmptyStruct() }
+            },
             HostConfig = new HostConfig()
             {
                PortBindings = new Dictionary<string, IList<PortBinding>>
-
-                {
-
-                    { "8080", new List<PortBinding> { new PortBinding() { HostPort = hostPort } } }
-
-                }
+               {
+                    { "8080", new List<PortBinding> { new() { HostPort = hostPort } } }
+               }
             }
         });
 
