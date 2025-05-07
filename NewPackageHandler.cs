@@ -45,6 +45,12 @@ public sealed class ProcessRegistryPackageWebhookProcessor(IDockerManager docker
         logger.LogInformation("Creating container '{packageName}' from image '{image_url}'", packageName, packageUrl);
         var newContainer = await dockerManager.CreateContainer(packageUrl, packageName);
 
+        if (newContainer == null)
+        {
+            logger.LogError("Failed to create container from image: {image_url}", packageUrl);
+            throw new Exception("Failed to create container");
+        }
+
         logger.LogInformation("Starting container {container_name}", packageName);
         await dockerManager.StartContainer(newContainer.ID);
     }
