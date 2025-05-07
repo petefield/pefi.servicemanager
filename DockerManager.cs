@@ -1,5 +1,6 @@
 ﻿using Docker.DotNet;
 using Docker.DotNet.Models;
+using Microsoft.Extensions.Logging.Configuration;
 
 namespace pefi.servicemanager;
 
@@ -7,6 +8,11 @@ public class DockerManager : IDockerManager
 {
     DockerClient _dockerClient;
     ILogger<DockerManager> _logger;
+
+    public Dictionary<string, int> ports = new()
+    {        
+        { "pefie.home", 5551 }
+    };
 
     public DockerManager(ILogger<DockerManager> logger)
     {
@@ -59,10 +65,17 @@ public class DockerManager : IDockerManager
 
     public async Task<ContainerListResponse?> CreateContainer(string packageUrl, string packageName)
     {
+        var exposedPorts = ports.TryGetValue(packageName, out var portNo)
+            ? (IDictionary<string, EmptyStruct>)new Dictionary<string, object> {
+                    { "8080", new { HostPort = portNo } }
+                }
+            : null;
+
         var createContainerResponse = await _dockerClient.Containers.CreateContainerAsync(new CreateContainerParameters()
         {
             Image = packageUrl,
-            Name = packageName
+            Name = packageName,
+            ExposedPorts = exposedPorts
         });
 
         var containers = await _dockerClient.Containers.ListContainersAsync(new ContainersListParameters { All = true });
