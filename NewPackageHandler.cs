@@ -4,51 +4,49 @@ using Octokit.Webhooks.Events.RegistryPackage;
 
 namespace pefi.servicemanager;
 
-public sealed class ProcessRegistryPackageWebhookProcessor : WebhookEventProcessor
+public sealed class ProcessRegistryPackageWebhookProcessor(IDockerManager dockerManager, ILogger<ProcessRegistryPackageWebhookProcessor> logger) : WebhookEventProcessor
 {
-    IDockerManager _dockerManager;
-    ILogger<ProcessRegistryPackageWebhookProcessor> _logger;
-
-    public ProcessRegistryPackageWebhookProcessor(IDockerManager dockerManager, ILogger<ProcessRegistryPackageWebhookProcessor> logger)
-    {
-        _dockerManager = dockerManager;
-        _logger = logger;
-    }
-
     protected async override Task ProcessRegistryPackageWebhookAsync(WebhookHeaders headers, RegistryPackageEvent evt, RegistryPackageAction action)
     {
-        var packageUrl = evt.Package.PackageVersion.PackageUrl;
+        var packageUrl = evt.Package.PackageVersion!.PackageUrl;
         var packageName = evt.Package.Name;
 
-        _logger.LogInformation("Updated Image :  {image}", packageUrl);
-
-        var currentContainer = await _dockerManager.GetContainerFromImageUrl(packageUrl);
-
-        if (currentContainer != null)
+        if (packageUrl == null)
         {
-            _logger.LogInformation("Stopping Container: {container_name}", currentContainer.Names);
-            await _dockerManager.StopContainer(currentContainer.ID); // Ensure the container is stopped before removing it
-
-            _logger.LogInformation("Removing Container: {container_name}", currentContainer.Names);
-            await _dockerManager.RemoveContainer(currentContainer.ID);
+            logger.LogError("Package URL is null");
+            throw new Exception("Package URL is null");
         }
 
-        var currentImage = await _dockerManager.GetImageFromImageUrl(packageUrl);
+        logger.LogInformation("Updated Image : {image}", packageUrl);
+
+
+        var currentImage = await dockerManager.GetImageFromImageUrl(packageUrl);
+        var currentContainer = await dockerManager.GetContainerFromImageUrl(packageUrl);
 
         if (currentImage != null)
         {
-            _logger.LogInformation("Removing image: {image_id}", currentImage.ID);
-            await _dockerManager.DeleteImage(packageUrl); // Wait for the image to be deleted before proceeding
+            logger.LogInformation("Removing image: {image_id}", currentImage.ID);
+            await dockerManager.DeleteImage(packageUrl); // Wait for the image to be deleted before proceeding
         }
 
-        _logger.LogInformation("Creating image: {image_url}", packageUrl);
-         await _dockerManager.CreateImage(packageUrl);
+        logger.LogInformation("Pulling image: {image_url}", packageUrl);
+        await dockerManager.CreateImage(packageUrl);
 
-        _logger.LogInformation("Creating container '{packageName}' from image '{image_url}'", packageName, packageUrl);
-        var newContainer = await _dockerManager.CreateContainer(packageUrl, packageName);
+        if (currentContainer != null)
+        {
+            logger.LogInformation("Stopping Container: {container_name}", packageName);
+            await dockerManager.StopContainer(currentContainer.ID); // Ensure the container is stopped before removing it
 
-        _logger.LogInformation("Starting container {container_name}", string.Join(" | ", newContainer.Names));
-        await _dockerManager.StartContainer(newContainer.ID);
+            logger.LogInformation("Removing Container: {container_name}", packageName);
+            await dockerManager.RemoveContainer(currentContainer.ID);
+        }
+
+
+        logger.LogInformation("Creating container '{packageName}' from image '{image_url}'", packageName, packageUrl);
+        var newContainer = await dockerManager.CreateContainer(packageUrl, packageName);
+
+        logger.LogInformation("Starting container {container_name}", packageName);
+        await dockerManager.StartContainer(newContainer.ID);
     }
 
 }
