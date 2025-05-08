@@ -15,7 +15,9 @@ ARG BUILD_CONFIGURATION=Release
 WORKDIR /src
 COPY ["pefi.servicemanager.csproj", "."]
 
-RUN dotnet nuget add source --username petefield --password $NUGET_AUTH_TOKEN --store-password-in-clear-text --name github "https://nuget.pkg.github.com/petefield/index.json"
+RUN echo "$NUGET_AUTH_TOKEN" 
+
+RUN dotnet nuget add source --username petefield --password $NUGET_AUTH_TOKEN --store-password-in-clear-text --name petefield "https://nuget.pkg.github.com/petefield/index.json"
 
 RUN dotnet restore "./pefi.servicemanager.csproj"
 COPY . .
