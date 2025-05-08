@@ -5,12 +5,13 @@ namespace pefi.servicemanager
 {
     public class ServiceRepository : IServiceRepository
     {
-        public ServiceRepository()
+        public ServiceRepository(ILogger<ServiceRepository> logger)
         {
-
+            Logger = logger;
         }
 
         public List<ServiceDescription> Services { get; set; } = [];
+        public ILogger<ServiceRepository> Logger { get; }
 
         public async Task< ServiceDescription>  Add(string Name, string? hostName, string? containerPortNumber, string? hostPortNumber)
         {
@@ -20,8 +21,8 @@ namespace pefi.servicemanager
 
             var service = new ServiceDescription(Name, hostName, containerPortNumber, hostPortNumber);
             Services.Add(service);
-
             await topic.Publish("events.service.created", service.ServiceName);
+            Logger.LogWarning("message sent");
 
             return service;
         }
