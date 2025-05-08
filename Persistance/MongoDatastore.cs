@@ -1,3 +1,4 @@
+using System.Linq.Expressions;
 using MongoDB.Driver;
 
 namespace pefi.servicemanager
@@ -16,10 +17,10 @@ namespace pefi.servicemanager
             return client.GetDatabase(database).GetCollection<T>(collection);
         }
 
-        public async Task<IEnumerable<T>> Get<T>(string database, string collection, Func<T, bool> predicate)
+        public async Task<IEnumerable<T>> Get<T>(string database, string collection, Expression< Func<T, bool>> predicate)
         {
             var a = await GetCollection<T>(database, collection)
-            .FindAsync(s=>  predicate(s));
+            .FindAsync(predicate);
 
             return a.ToEnumerable();
         }
