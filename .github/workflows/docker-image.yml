@@ -32,7 +32,6 @@ jobs:
     - name: Build
       uses: docker/build-push-action@v6
       with:
-        tags: $IMAGE:latest
         secrets: |
           "github_token=${{ secrets.GITHUB_TOKEN }}"
 
