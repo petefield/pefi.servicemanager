@@ -32,6 +32,7 @@ jobs:
     - name: Build
       uses: docker/build-push-action@v6
       with:
+        tags: ghcr.io/${{ github.repository }}
         secrets: |
             "github_token=${{ secrets.GITHUB_TOKEN }}"
 
@@ -45,4 +46,5 @@ jobs:
     - name: Build and push
       uses: docker/build-push-action@v6
       with:
+        tags: ghcr.io/${{ github.repository }}
         push: true
