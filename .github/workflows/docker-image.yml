@@ -32,7 +32,7 @@ jobs:
     - name: Build
       uses: docker/build-push-action@v6
       with:
-        tags: "ghcr.io/${{ github.repository }}:latest"
+        tags: ghcr.io/${{ github.repository }}:latest
         secrets: |
             "github_token=${{ secrets.GITHUB_TOKEN }}"
 
@@ -45,4 +45,4 @@ jobs:
 
     - name: Push Docker image
       run: |
-       docker push "ghcr.io/${{ github.repository }}:latest"
+       docker push ghcr.io/${{ github.repository }}:latest
