@@ -1,7 +1,4 @@
-﻿using dnsimple;
-using MongoDB.Driver;
-using pefi.Rabbit;
-using System.Xml.Linq;
+﻿using MongoDB.Driver;
 
 namespace pefi.servicemanager
 {
@@ -28,7 +25,6 @@ namespace pefi.servicemanager
             
         }
         
-
         public async Task<ServiceDescription> Add(string Name, string? hostName, string? containerPortNumber, string? hostPortNumber)
         {
             var connectionString = "mongodb://192.168.0.5:27017"; // Default Mongo URI
@@ -62,11 +58,6 @@ namespace pefi.servicemanager
             var allPeople = await collection.FindAsync(s => s.ServiceName == name);
 
             return allPeople.ToEnumerable().SingleOrDefault();
-        }
-
-        Task<IEnumerable<ServiceDescription>> IServiceRepository.GetServices()
-        {
-            throw new NotImplementedException();
         }
     }
 }
