@@ -7,27 +7,29 @@ namespace pefi.servicemanager
 {
     public class ServiceRepository : IServiceRepository
     {
+        public ILogger<ServiceRepository> Logger { get; }
+
+
         public ServiceRepository(ILogger<ServiceRepository> logger)
         {
             Logger = logger;
         }
 
-        public List<ServiceDescription> Services { 
-            get {
-                var connectionString = "mongodb://192.168.0.5:27017"; // Default Mongo URI
-                var client = new MongoClient(connectionString);
-                var database = client.GetDatabase("testdb");
-                var collection = database.GetCollection<ServiceDescription>("services");
+        public async Task<IEnumerable<ServiceDescription>> GetServices()
+        {   
+            var connectionString = "mongodb://192.168.0.5:27017"; // Default Mongo URI
+            var client = new MongoClient(connectionString);
+            var database = client.GetDatabase("testdb");
+            var collection = database.GetCollection<ServiceDescription>("services");
 
+            var allPeople = await collection.FindAsync(_ => true);
 
-                var allPeople = collection.Find(_ => true).ToList();
-
-                return allPeople;
-            } 
+            return allPeople.ToEnumerable();
+            
         }
-        public ILogger<ServiceRepository> Logger { get; }
+        
 
-        public async Task< ServiceDescription>  Add(string Name, string? hostName, string? containerPortNumber, string? hostPortNumber)
+        public async Task<ServiceDescription> Add(string Name, string? hostName, string? containerPortNumber, string? hostPortNumber)
         {
             var connectionString = "mongodb://192.168.0.5:27017"; // Default Mongo URI
             var client = new MongoClient(connectionString);
@@ -44,16 +46,27 @@ namespace pefi.servicemanager
             using var topic = await messageBroker.CreateTopic("Events");
 
 
-            Services.Add(service);
             await topic.Publish("events.service.created", service.ServiceName);
             Logger.LogWarning("message sent");
 
             return service;
         }
 
-        public ServiceDescription? GetService(string name)
+        public async Task<ServiceDescription?> GetService(string name)
         {
-            return Services.FirstOrDefault(s => s.ServiceName == name);
+            var connectionString = "mongodb://192.168.0.5:27017"; // Default Mongo URI
+            var client = new MongoClient(connectionString);
+            var database = client.GetDatabase("testdb");
+            var collection = database.GetCollection<ServiceDescription>("services");
+
+            var allPeople = await collection.FindAsync(s => s.ServiceName == name);
+
+            return allPeople.ToEnumerable().SingleOrDefault();
+        }
+
+        Task<IEnumerable<ServiceDescription>> IServiceRepository.GetServices()
+        {
+            throw new NotImplementedException();
         }
     }
 }

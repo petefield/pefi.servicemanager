@@ -1,6 +1,7 @@
 using Octokit.Webhooks;
 using Octokit.Webhooks.AspNetCore;
 using pefi.servicemanager;
+using pefi.servicemanager.Docker;
 
 var builder = WebApplication.CreateBuilder(args);
 builder.Logging.AddConsole();
@@ -17,6 +18,9 @@ await x.Add("pefi.dynamicdns", null, null, null);
 app.UseRouting()
     .UseEndpoints(endpoints => endpoints.MapGitHubWebhooks("service-manager/newpackage"));
 
-
+app.MapGet("/services", async (IServiceRepository serviceRepository) =>
+{
+    return await serviceRepository.GetServices();
+});
 
 app.Run();

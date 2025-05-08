@@ -1,6 +1,7 @@
 ﻿using Octokit.Webhooks.Events;
 using Octokit.Webhooks;
 using Octokit.Webhooks.Events.RegistryPackage;
+using pefi.servicemanager.Docker;
 
 namespace pefi.servicemanager;
 
@@ -11,7 +12,7 @@ public sealed class ProcessRegistryPackageWebhookProcessor(IDockerManager docker
         var packageUrl = evt.Package.PackageVersion!.PackageUrl;
         var packageName = evt.Package.Name;
 
-        var service = serviceRepository.GetService(packageName);
+        var service = await serviceRepository.GetService(packageName);
 
         if (service is null)
         {
