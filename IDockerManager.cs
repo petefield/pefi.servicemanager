@@ -4,7 +4,7 @@ namespace pefi.servicemanager
 {
     public interface IDockerManager
     {
-        Task<ContainerListResponse?> CreateContainer(string packageUrl, string packageName);
+        Task<ContainerListResponse?> CreateContainer(string packageUrl, string packageName, string? containerPortNumber, string? hostPortNumber);
         Task CreateImage(string packageUrl);
         Task DeleteImage(string packageUrl);
         Task<ContainerListResponse?> GetContainerFromImageUrl(string packageUrl);

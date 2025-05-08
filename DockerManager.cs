@@ -63,35 +63,24 @@ public class DockerManager : IDockerManager
         new Progress<JSONMessage>());
     }
 
-    public async Task<ContainerListResponse?> CreateContainer(string packageUrl, string packageName)
+    public async Task<ContainerListResponse?> CreateContainer(string packageUrl, string packageName, string? containerPortNumber, string? hostPortNumber)
     {
-        var hostPort = ports.TryGetValue(packageName, out var portNo)
-            ? portNo.ToString()
+        var exposedPorts = containerPortNumber != null 
+            ? new Dictionary<string, EmptyStruct> { { containerPortNumber, new EmptyStruct() }   }
             : null;
 
-        if (hostPort == null)
-        {
-            _logger.LogWarning("No exposed ports found for container: {container_name}", packageName);
-        }
-        else {
-            _logger.LogWarning("exposing port {porNumber}", portNo);
-        }
-
+        var portbindings = (containerPortNumber != null && hostPortNumber != null )
+            ? new Dictionary<string, IList<PortBinding>>   {   { containerPortNumber, new List<PortBinding> { new() { HostPort = hostPortNumber } } }               }
+            : null;
 
         var createContainerResponse = await _dockerClient.Containers.CreateContainerAsync(new CreateContainerParameters()
         {
             Image = packageUrl,
             Name = packageName,
-            ExposedPorts = new Dictionary<string, EmptyStruct>
-            {
-                { "8080", new EmptyStruct() }
-            },
+            ExposedPorts = exposedPorts,
             HostConfig = new HostConfig()
             {
-               PortBindings = new Dictionary<string, IList<PortBinding>>
-               {
-                    { "8080", new List<PortBinding> { new() { HostPort = hostPort } } }
-               }
+               PortBindings = portbindings
             }
         });
 

@@ -4,12 +4,20 @@ using Octokit.Webhooks.Events.RegistryPackage;
 
 namespace pefi.servicemanager;
 
-public sealed class ProcessRegistryPackageWebhookProcessor(IDockerManager dockerManager, ILogger<ProcessRegistryPackageWebhookProcessor> logger) : WebhookEventProcessor
+public sealed class ProcessRegistryPackageWebhookProcessor(IDockerManager dockerManager, IServiceRepository serviceRepository, ILogger<ProcessRegistryPackageWebhookProcessor> logger) : WebhookEventProcessor
 {
     protected async override Task ProcessRegistryPackageWebhookAsync(WebhookHeaders headers, RegistryPackageEvent evt, RegistryPackageAction action)
     {
         var packageUrl = evt.Package.PackageVersion!.PackageUrl;
         var packageName = evt.Package.Name;
+
+        var service = serviceRepository.GetService(packageName);
+
+        if (service is null)
+        {
+            logger.LogError("Service not found: {service_name}", packageName);
+            throw new Exception($"Service not found: {packageName}");
+        }
 
         if (packageUrl == null)
         {
@@ -17,7 +25,7 @@ public sealed class ProcessRegistryPackageWebhookProcessor(IDockerManager docker
             throw new Exception("Package URL is null");
         }
 
-        logger.LogInformation("Updated Image : {image}", packageUrl);
+        logger.LogInformation("Service {service_name} is being updated.", service.ServiceName);
 
 
         var currentImage = await dockerManager.GetImageFromImageUrl(packageUrl);
@@ -41,9 +49,8 @@ public sealed class ProcessRegistryPackageWebhookProcessor(IDockerManager docker
             await dockerManager.RemoveContainer(currentContainer.ID);
         }
 
-
         logger.LogInformation("Creating container '{packageName}' from image '{image_url}'", packageName, packageUrl);
-        var newContainer = await dockerManager.CreateContainer(packageUrl, packageName);
+        var newContainer = await dockerManager.CreateContainer(packageUrl, packageName, service.ContainerPortNumber, service.HostPortNumber);
 
         if (newContainer == null)
         {
