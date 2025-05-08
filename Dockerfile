@@ -15,8 +15,7 @@ WORKDIR /src
 COPY ["pefi.servicemanager.csproj", "."]
 
 
-RUN --mount=type=secret,id=github_token,env=GITHUB_TOKEN 
-dotnet nuget add source --username petefield --password $GITHUB_TOKEN --store-password-in-clear-text --name petefield "https://nuget.pkg.github.com/petefield/index.json"
+RUN --mount=type=secret,id=github_token,env=GITHUB_TOKEN dotnet nuget add source --username petefield --password $GITHUB_TOKEN --store-password-in-clear-text --name petefield "https://nuget.pkg.github.com/petefield/index.json"
 
 RUN dotnet restore "./pefi.servicemanager.csproj"
 COPY . .
