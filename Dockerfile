@@ -1,5 +1,4 @@
 # See https://aka.ms/customizecontainer to learn how to customize your debug container and how Visual Studio uses this Dockerfile to build your images for faster debugging.
-ARG NUGET_AUTH_TOKEN
 
 # This stage is used when running from VS in fast mode (Default for Debug configuration)
 FROM mcr.microsoft.com/dotnet/aspnet:8.0 AS base
@@ -15,9 +14,8 @@ ARG BUILD_CONFIGURATION=Release
 WORKDIR /src
 COPY ["pefi.servicemanager.csproj", "."]
 
-RUN echo "$NUGET_AUTH_TOKEN" 
 
-RUN dotnet nuget add source --username petefield --password $NUGET_AUTH_TOKEN --store-password-in-clear-text --name petefield "https://nuget.pkg.github.com/petefield/index.json"
+RUN --mount=type=secret,id=github_token,env=GITHUB_TOKEN dotnet nuget add source --username petefield --password $github_token --store-password-in-clear-text --name petefield "https://nuget.pkg.github.com/petefield/index.json"
 
 RUN dotnet restore "./pefi.servicemanager.csproj"
 COPY . .

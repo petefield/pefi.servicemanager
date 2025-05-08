@@ -26,11 +26,20 @@ jobs:
       id: vars
       run: echo "IMAGE=ghcr.io/${{ github.repository }}" >> $GITHUB_ENV
     
+    - name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@v3
+
+    - name: Build
+      uses: docker/build-push-action@v6
+      with:
+        tags: $IMAGE:latest
+        secrets: |
+          "github_token=${{ secrets.GITHUB_TOKEN }}"
+
     - name: Build Docker image
       env:
         NUGET_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       run: |
-        echo $NUGET_AUTH_TOKEN
         docker build --build-arg NUGET_AUTH_TOKEN=$NUGET_AUTH_TOKEN -t $IMAGE:latest .
 
     - name: Log in to GitHub Container Registry
