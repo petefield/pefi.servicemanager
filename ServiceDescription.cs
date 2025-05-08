@@ -4,7 +4,7 @@ using MongoDB.Bson;
 namespace pefi.servicemanager
 {
     public class ServiceDescription(
-        string ServiceName, string HostName, string? ContainerPortNumber, string? HostPortNumber)
+        string ServiceName, string? HostName, string? ContainerPortNumber, string? HostPortNumber)
     {
 
         [BsonId]
@@ -14,7 +14,7 @@ namespace pefi.servicemanager
         public string ServiceName { get; set; } = ServiceName;
 
         [BsonElement("HostName")]
-        public string HostName { get; set; } = HostName;
+        public string? HostName { get; set; } = HostName;
 
         [BsonElement("ContainerPortNumber")]
         public string? ContainerPortNumber { get; set; } = ContainerPortNumber;

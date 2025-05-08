@@ -1,63 +1,35 @@
 ﻿using MongoDB.Driver;
+using pefi.Rabbit;
 
-namespace pefi.servicemanager
+namespace pefi.servicemanager;
+
+public class ServiceRepository(IMessageBroker messageBroker, IDataStore database) : IServiceRepository
 {
-    public class ServiceRepository : IServiceRepository
+    private readonly string databaseName = "ServiceDb";
+    private readonly string serviceCollectionName = "services";
+
+    public async Task<IEnumerable<ServiceDescription>> GetServices()
+    {   
+        var services = await database.Get<ServiceDescription>(databaseName, serviceCollectionName);
+        return services;
+    }
+    
+    public async Task<ServiceDescription> Add(string name, string? hostName, string? containerPortNumber, string? hostPortNumber)
     {
-        public ILogger<ServiceRepository> Logger { get; }
+        var service = new ServiceDescription(name, hostName, containerPortNumber, hostPortNumber);
 
+        await database.Add(databaseName, serviceCollectionName, service);
 
-        public ServiceRepository(ILogger<ServiceRepository> logger)
-        {
-            Logger = logger;
-        }
+        using var topic = await messageBroker.CreateTopic("Events");
+        await topic.Publish("events.service.created", service.ServiceName);
 
-        public async Task<IEnumerable<ServiceDescription>> GetServices()
-        {   
-            var connectionString = "mongodb://192.168.0.5:27017"; // Default Mongo URI
-            var client = new MongoClient(connectionString);
-            var database = client.GetDatabase("testdb");
-            var collection = database.GetCollection<ServiceDescription>("services");
+        return service;
+    }
 
-            var allPeople = await collection.FindAsync(_ => true);
-
-            return allPeople.ToEnumerable();
-            
-        }
-        
-        public async Task<ServiceDescription> Add(string Name, string? hostName, string? containerPortNumber, string? hostPortNumber)
-        {
-            var connectionString = "mongodb://192.168.0.5:27017"; // Default Mongo URI
-            var client = new MongoClient(connectionString);
-            var database = client.GetDatabase("testdb");
-            var collection = database.GetCollection<ServiceDescription>("services");
-
-            var service = new ServiceDescription(Name, hostName, containerPortNumber, hostPortNumber);
-
-
-            collection.InsertOne(service);
-
-
-            using var messageBroker = await pefi.Rabbit.MessageBroker.Create("192.168.0.5", "username", "password");
-            using var topic = await messageBroker.CreateTopic("Events");
-
-
-            await topic.Publish("events.service.created", service.ServiceName);
-            Logger.LogWarning("message sent");
-
-            return service;
-        }
-
-        public async Task<ServiceDescription?> GetService(string name)
-        {
-            var connectionString = "mongodb://192.168.0.5:27017"; // Default Mongo URI
-            var client = new MongoClient(connectionString);
-            var database = client.GetDatabase("testdb");
-            var collection = database.GetCollection<ServiceDescription>("services");
-
-            var allPeople = await collection.FindAsync(s => s.ServiceName == name);
-
-            return allPeople.ToEnumerable().SingleOrDefault();
-        }
+    public async Task<ServiceDescription?> GetService(string name)
+    {
+        var services = await database.Get<ServiceDescription>(databaseName, serviceCollectionName, s => s.ServiceName == name);
+        return services.SingleOrDefault();
     }
 }
+

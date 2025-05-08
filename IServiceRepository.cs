@@ -7,6 +7,6 @@ namespace pefi.servicemanager
 
         Task<IEnumerable<ServiceDescription>> GetServices();
 
-        Task<ServiceDescription> Add(string Name, string hostName, string containerPortNumber, string hostPortNumber);
+        Task<ServiceDescription> Add(string Name, string? hostName, string? containerPortNumber, string? hostPortNumber);
     }
 }
