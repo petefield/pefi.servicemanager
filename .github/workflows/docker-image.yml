@@ -30,6 +30,7 @@ jobs:
       env:
         NUGET_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       run: |
+        echo $NUGET_AUTH_TOKEN
         docker build --build-arg NUGET_AUTH_TOKEN=$NUGET_AUTH_TOKEN -t $IMAGE:latest .
 
     - name: Log in to GitHub Container Registry
