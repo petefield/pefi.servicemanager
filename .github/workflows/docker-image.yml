@@ -32,7 +32,7 @@ jobs:
     - name: Build
       uses: docker/build-push-action@v6
       with:
-        tags: pefi.servicemanager:latest
+        tags: ${{ github.repository }}:latest
         secrets: |
             "github_token=${{ secrets.GITHUB_TOKEN }}"
 
@@ -45,4 +45,4 @@ jobs:
 
     - name: Push Docker image
       run: |
-       docker push $IMAGE:latest
+       docker push ${{ github.repository }}:latest
