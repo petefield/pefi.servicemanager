@@ -9,7 +9,6 @@ using pefi.observability;
 var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddPefiObservability("http://192.168.0.5:4317");
 
-builder.Logging.AddConsole();
 
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
