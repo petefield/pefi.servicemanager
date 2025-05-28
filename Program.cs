@@ -4,8 +4,11 @@ using pefi.Rabbit;
 using pefi.servicemanager;
 using pefi.servicemanager.Contracts;
 using pefi.servicemanager.Docker;
+using pefi.observability;
 
 var builder = WebApplication.CreateBuilder(args);
+builder.Services.AddPefiObservability("http://192.168.0.5:4317");
+
 builder.Logging.AddConsole();
 
 builder.Services.AddEndpointsApiExplorer();
