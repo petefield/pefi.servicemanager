@@ -16,7 +16,7 @@
     <PackageReference Include="MongoDB.Driver" Version="3.4.0" />
     <PackageReference Include="Octokit.Webhooks.AspNetCore" Version="2.4.1" />
     <PackageReference Include="pefi.messaging.rabbit" Version="1.0.0-ci-20250508.8" />
-    <PackageReference Include="pefi.observability" Version="1.0.0-ci-20250527.1" />
+    <PackageReference Include="pefi.observability" Version="1.0.0-ci-20250529.2" />
     <PackageReference Include="Swashbuckle.AspNetCore" Version="6.6.2" />
 	  <PackageReference Include="DNSimple" Version="0.19.1" />
 
