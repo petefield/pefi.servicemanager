@@ -10,16 +10,21 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Content Remove="C:\Users\petef\.nuget\packages\dnsimple\0.19.1\contentFiles\any\netstandard2.1\icon.png" />
+  </ItemGroup>
+
+  <ItemGroup>
     <PackageReference Include="Docker.DotNet" Version="3.125.15" />
     <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="8.0.15" />
     <PackageReference Include="Microsoft.VisualStudio.Azure.Containers.Tools.Targets" Version="1.21.0" />
     <PackageReference Include="MongoDB.Driver" Version="3.4.0" />
     <PackageReference Include="Octokit.Webhooks.AspNetCore" Version="2.4.1" />
     <PackageReference Include="pefi.messaging.rabbit" Version="1.0.0-ci-20250508.8" />
-    <PackageReference Include="pefi.observability" Version="1.0.0-ci-20250529.2" />
+    <PackageReference Include="pefi.observability" Version="1.0.0-ci-20250530.3" />
+    <PackageReference Include="RabbitMQ.Client.OpenTelemetry" Version="1.0.0-rc.1" />
     <PackageReference Include="Swashbuckle.AspNetCore" Version="6.6.2" />
 	  <PackageReference Include="DNSimple" Version="0.19.1" />
-
+    <PackageReference Include="MongoDB.Driver.Core.Extensions.DiagnosticSources" Version="2.1.0" />
   </ItemGroup>
 
 </Project>

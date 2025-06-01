@@ -1,13 +1,20 @@
+using dnsimple;
+using MongoDB.Driver;
+using MongoDB.Driver.Core.Extensions.DiagnosticSources;
 using Octokit.Webhooks;
 using Octokit.Webhooks.AspNetCore;
+using pefi.observability;
 using pefi.Rabbit;
 using pefi.servicemanager;
 using pefi.servicemanager.Contracts;
 using pefi.servicemanager.Docker;
-using pefi.observability;
+using OpenTelemetry.Trace;
 
 var builder = WebApplication.CreateBuilder(args);
-builder.Services.AddPefiObservability("http://192.168.0.5:4317");
+builder.Services.AddPefiObservability("http://192.168.0.5:4317", t=> t
+    .AddSource("MongoDB.Driver.Core.Extensions.DiagnosticSources")
+    .AddRabbitMQInstrumentation());
+
 builder.Logging.AddPefiLogging();
 
 builder.Services.AddEndpointsApiExplorer();
@@ -17,6 +24,13 @@ builder.Services.AddSingleton<IDockerManager, DockerManager>();
 builder.Services.AddSingleton<IServiceRepository, ServiceRepository>();
 builder.Services.AddSingleton<IMessageBroker>( sp => new MessageBroker("192.168.0.5", "username", "password"));
 builder.Services.AddSingleton<IDataStore,  MongoDatastore>();
+builder.Services.AddSingleton<IMongoClient>(_ => {
+
+    var clientSettings = MongoClientSettings.FromConnectionString("mongodb://192.168.0.5:27017");
+    clientSettings.ClusterConfigurator = cb => cb.Subscribe(new DiagnosticsActivityEventSubscriber());
+    var mongoClient = new MongoClient(clientSettings);
+    return mongoClient;
+});
 
 var app = builder.Build();
 

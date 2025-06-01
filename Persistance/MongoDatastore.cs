@@ -3,24 +3,15 @@ using MongoDB.Driver;
 
 namespace pefi.servicemanager
 {
-    public class MongoDatastore : IDataStore
+    public class MongoDatastore(IMongoClient client) : IDataStore
     {
-        private readonly MongoClient client;
-
-        public MongoDatastore()
-        {
-            client = new MongoClient("mongodb://192.168.0.5:27017");
-        }
-
-        private IMongoCollection<T> GetCollection<T>(string database, string collection)
-        {
-            return client.GetDatabase(database).GetCollection<T>(collection);
-        }
-
+        private IMongoCollection<T> GetCollection<T>(string database, string collection) 
+            => client.GetDatabase(database).GetCollection<T>(collection);
+        
         public async Task<IEnumerable<T>> Get<T>(string database, string collection, Expression< Func<T, bool>> predicate)
         {
             var a = await GetCollection<T>(database, collection)
-            .FindAsync(predicate);
+                .FindAsync(predicate);
 
             return a.ToEnumerable();
         }
@@ -30,7 +21,7 @@ namespace pefi.servicemanager
         public async Task<T> Add<T>(string database, string collection, T item)
         {
             await GetCollection<T>(database, collection)
-            .InsertOneAsync(item);
+                .InsertOneAsync(item);
 
             return item;
         }
