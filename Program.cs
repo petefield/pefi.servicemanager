@@ -44,10 +44,11 @@ builder.Services.AddCors(options =>
 
 var app = builder.Build();
 
-app.UseCors();
 app.UseSwagger();
 app.UseSwaggerUI();
-app.UseRouting().UseEndpoints(endpoints => endpoints.MapGitHubWebhooks("service-manager/newpackage"));
+var a = app.UseRouting();
+app.UseCors();
+a.UseEndpoints(endpoints => endpoints.MapGitHubWebhooks("service-manager/newpackage"));
 
 
 app.MapGet("/services", async (IServiceRepository serviceRepository) =>
