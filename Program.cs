@@ -32,13 +32,25 @@ builder.Services.AddSingleton<IMongoClient>(_ => {
     return mongoClient;
 });
 
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy(name: "allow-all",
+        policy =>
+        {
+            policy.AllowAnyHeader();
+            policy.AllowAnyOrigin();
+            policy.AllowAnyMethod();
+        });
+});
+
+
 var app = builder.Build();
 
 app.UseSwagger();
 app.UseSwaggerUI();
+app.UseRouting().UseEndpoints(endpoints => endpoints.MapGitHubWebhooks("service-manager/newpackage"));
 
-app.UseRouting()
-    .UseEndpoints(endpoints => endpoints.MapGitHubWebhooks("service-manager/newpackage"));
+app.UseCors("allow-all");
 
 app.MapGet("/services", async (IServiceRepository serviceRepository) =>
 {
