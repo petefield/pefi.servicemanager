@@ -1,4 +1,5 @@
-﻿using MongoDB.Driver;
+﻿using System.Text.Json;
+using MongoDB.Driver;
 using pefi.Rabbit;
 
 namespace pefi.servicemanager;
@@ -21,7 +22,8 @@ public class ServiceRepository(IMessageBroker messageBroker, IDataStore database
         await database.Add(databaseName, serviceCollectionName, service);
 
         using var topic = await messageBroker.CreateTopic("Events");
-        await topic.Publish("events.service.created", service.ServiceName);
+        var message = JsonSerializer.Serialize(service);
+        await topic.Publish("events.service.created", message);
 
         return service;
     }

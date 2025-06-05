@@ -31,7 +31,6 @@ builder.Services.AddSingleton<IMongoClient>(_ => {
     var mongoClient = new MongoClient(clientSettings);
     return mongoClient;
 });
-
 builder.Services.AddCors(options =>
 {
     options.AddPolicy(name: "allow-all",
@@ -43,29 +42,29 @@ builder.Services.AddCors(options =>
         });
 });
 
-
 var app = builder.Build();
 
+app.UseCors();
 app.UseSwagger();
 app.UseSwaggerUI();
 app.UseRouting().UseEndpoints(endpoints => endpoints.MapGitHubWebhooks("service-manager/newpackage"));
 
-app.UseCors("allow-all");
 
 app.MapGet("/services", async (IServiceRepository serviceRepository) =>
 {
     var result = await serviceRepository.GetServices();
     return result.Select(x => new GetServiceResponse(x.ServiceName, x.HostName, x.ContainerPortNumber, x.HostPortNumber));
 })
-.WithName("Get All Services")
-.WithOpenApi();
+    .RequireCors("allow-all")
+    .WithName("Get All Services")
+    .WithOpenApi();
 
 app.MapPost("/services", async (IServiceRepository serviceRepository, CreateServiceRequest s) =>
 {
     var result = await serviceRepository.Add(s.ServiceName, s.HostName, s.ContainerPortNumber, s.HostPortNumber);
     return new CreateServiceResponse(s.ServiceName, s.HostName, s.ContainerPortNumber, s.HostPortNumber);
 })
-.WithName("Create Service All Services")
-.WithOpenApi();
+    .WithName("Create Service All Services")
+    .WithOpenApi();
 
 app.Run();
