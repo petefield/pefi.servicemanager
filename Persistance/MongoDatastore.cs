@@ -25,5 +25,12 @@ namespace pefi.servicemanager
 
             return item;
         }
+
+        public async Task Delete<T>(string database, string collection, Expression<Func<T, bool>> predicate)
+        {
+            await GetCollection<T>(database, collection)
+                .DeleteManyAsync(predicate);
+
+        }
     }
 }

@@ -33,5 +33,10 @@ public class ServiceRepository(IMessageBroker messageBroker, IDataStore database
         var services = await database.Get<ServiceDescription>(databaseName, serviceCollectionName, s => s.ServiceName == name);
         return services.SingleOrDefault();
     }
+
+    public async Task Delete(string serviceName)
+    {
+        await database.Delete<ServiceDescription>(databaseName, serviceCollectionName, s => s.ServiceName == serviceName);
+    }
 }
 

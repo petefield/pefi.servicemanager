@@ -10,4 +10,7 @@ public interface IDataStore
 
     Task<IEnumerable<T>> Get<T>(string database, string collection);
 
+    Task Delete<T>(string database, string collection, Expression<Func<T, bool>> predicate);
+
+
 }

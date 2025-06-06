@@ -68,4 +68,11 @@ app.MapPost("/services", async (IServiceRepository serviceRepository, CreateServ
     .WithName("Create Service All Services")
     .WithOpenApi();
 
+app.MapDelete("/services/{serviceName}", async (IServiceRepository serviceRepository, string serviceName) =>
+{
+    await serviceRepository.Delete(serviceName);
+})
+    .WithName("Delete Service")
+    .WithOpenApi();
+
 app.Run();
