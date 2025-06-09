@@ -64,14 +64,16 @@ app.MapPost("/services", async (IServiceRepository serviceRepository, CreateServ
 {
     var result = await serviceRepository.Add(s.ServiceName, s.HostName, s.ContainerPortNumber, s.HostPortNumber);
     return new CreateServiceResponse(s.ServiceName, s.HostName, s.ContainerPortNumber, s.HostPortNumber);
-})
+}).RequireCors("allow-all")
+
     .WithName("Create Service All Services")
     .WithOpenApi();
 
 app.MapDelete("/services/{serviceName}", async (IServiceRepository serviceRepository, string serviceName) =>
 {
     await serviceRepository.Delete(serviceName);
-})
+}).RequireCors("allow-all")
+
     .WithName("Delete Service")
     .WithOpenApi();
 
