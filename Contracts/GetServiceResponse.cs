@@ -1,3 +1,19 @@
-﻿namespace pefi.servicemanager.Contracts;
+﻿using pefi.servicemanager.Models;
 
-public record GetServiceResponse( string ServiceName, string? HostName, string? ContainerPortNumber, string? HostPortNumber);
+namespace pefi.servicemanager.Contracts;
+
+public record GetServiceResponse(
+    string ServiceName, 
+    string? HostName, 
+    string? ContainerPortNumber, 
+    string? HostPortNumber,
+    string? DockerImageUrl
+)
+{
+    public static GetServiceResponse From(Service service) => new(
+        service.ServiceName, 
+        service.HostName, 
+        service.ContainerPortNumber, 
+        service.HostPortNumber, 
+        service.DockerImageUrl);
+    }

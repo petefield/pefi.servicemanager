@@ -1,3 +1,12 @@
-﻿namespace pefi.servicemanager.Contracts;
+﻿using System.ComponentModel.DataAnnotations;
 
-public record CreateServiceRequest( string ServiceName, string? HostName, string? ContainerPortNumber, string? HostPortNumber);
+namespace pefi.servicemanager.Contracts;
+
+public record CreateServiceRequest(
+    [Required]
+    string ServiceName, 
+    string? HostName, 
+    string? ContainerPortNumber, 
+    string? HostPortNumber, 
+    string? DockerImageUrl
+    );

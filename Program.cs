@@ -9,6 +9,7 @@ using pefi.servicemanager;
 using pefi.servicemanager.Contracts;
 using pefi.servicemanager.Docker;
 using OpenTelemetry.Trace;
+using pefi.servicemanager.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddPefiObservability("http://192.168.0.5:4317", t=> t
@@ -54,27 +55,42 @@ a.UseEndpoints(endpoints => endpoints.MapGitHubWebhooks("service-manager/newpack
 app.MapGet("/services", async (IServiceRepository serviceRepository) =>
 {
     var result = await serviceRepository.GetServices();
-    return result.Select(x => new GetServiceResponse(x.ServiceName, x.HostName, x.ContainerPortNumber, x.HostPortNumber));
-})
-    .RequireCors("allow-all")
-    .WithName("Get All Services")
-    .WithOpenApi();
+
+    return result is null
+        ? Results.Ok(Enumerable.Empty<GetServiceResponse>())
+        : Results.Ok(result.Select(service => GetServiceResponse.From(service)));
+}).RequireCors("allow-all")
+  .WithName("Get All Services")
+  .WithOpenApi();
+
+app.MapGet("/services/{serviceName}", async (string serviceName, IServiceRepository serviceRepository) =>
+{
+    var result = await serviceRepository.GetService(serviceName);
+
+    return (result is null)
+        ? Results.NotFound()
+        : Results.Ok(GetServiceResponse.From(result));
+
+}).RequireCors("allow-all")
+  .WithName("Get Service By Name")
+  .WithOpenApi();
 
 app.MapPost("/services", async (IServiceRepository serviceRepository, CreateServiceRequest s) =>
 {
-    var result = await serviceRepository.Add(s.ServiceName, s.HostName, s.ContainerPortNumber, s.HostPortNumber);
-    return new CreateServiceResponse(s.ServiceName, s.HostName, s.ContainerPortNumber, s.HostPortNumber);
-}).RequireCors("allow-all")
+    var result = await serviceRepository.Add(s.ServiceName, s.HostName, s.ContainerPortNumber, s.HostPortNumber, s.DockerImageUrl);
+    return Results.Created(string.Empty, CreateServiceResponse.From(result));
 
-    .WithName("Create Service All Services")
-    .WithOpenApi();
+}).RequireCors("allow-all")
+  .WithName("Create Service")
+  .WithOpenApi();
 
 app.MapDelete("/services/{serviceName}", async (IServiceRepository serviceRepository, string serviceName) =>
 {
     await serviceRepository.Delete(serviceName);
-}).RequireCors("allow-all")
+    return Results.NoContent();
 
-    .WithName("Delete Service")
-    .WithOpenApi();
+}).RequireCors("allow-all")
+  .WithName("Delete Service")
+  .WithOpenApi();
 
 app.Run();

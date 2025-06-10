@@ -1,10 +1,14 @@
 ﻿using MongoDB.Bson.Serialization.Attributes;
 using MongoDB.Bson;
 
-namespace pefi.servicemanager
+namespace pefi.servicemanager.Models
 {
-    public class ServiceDescription(
-        string ServiceName, string? HostName, string? ContainerPortNumber, string? HostPortNumber)
+    public class Service(
+        string ServiceName, 
+        string? HostName, 
+        string? ContainerPortNumber, 
+        string? HostPortNumber, 
+        string? DockerImageUrl)
     {
 
         [BsonId]
@@ -21,5 +25,8 @@ namespace pefi.servicemanager
 
         [BsonElement("HostPortNumber")]
         public string? HostPortNumber { get; set; } = HostPortNumber;
+
+        [BsonElement(nameof(DockerImageUrl))]
+        public string? DockerImageUrl { get; } = DockerImageUrl;
     }
 }

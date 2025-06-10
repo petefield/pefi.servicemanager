@@ -1,7 +1,7 @@
 ﻿using MongoDB.Driver;
 using MongoDB.Driver.Core.Extensions.DiagnosticSources;
 
-namespace pefi.servicemanager
+namespace pefi.servicemanager.Persistance
 {
     public static class ServiceCollectionExtensions
     {

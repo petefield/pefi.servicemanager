@@ -3,7 +3,7 @@ using Octokit.Webhooks;
 using Octokit.Webhooks.Events.RegistryPackage;
 using pefi.servicemanager.Docker;
 
-namespace pefi.servicemanager;
+namespace pefi.servicemanager.Services;
 
 public sealed class ProcessRegistryPackageWebhookProcessor(IDockerManager dockerManager, IServiceRepository serviceRepository, ILogger<ProcessRegistryPackageWebhookProcessor> logger) : WebhookEventProcessor
 {
