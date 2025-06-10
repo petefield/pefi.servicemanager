@@ -61,6 +61,7 @@ app.MapGet("/services", async (IServiceRepository serviceRepository) =>
         : Results.Ok(result.Select(service => GetServiceResponse.From(service)));
 }).RequireCors("allow-all")
   .WithName("Get All Services")
+  .Produces<IEnumerable<GetServiceResponse>>(200)
   .WithOpenApi();
 
 app.MapGet("/services/{serviceName}", async (string serviceName, IServiceRepository serviceRepository) =>
@@ -73,6 +74,7 @@ app.MapGet("/services/{serviceName}", async (string serviceName, IServiceReposit
 
 }).RequireCors("allow-all")
   .WithName("Get Service By Name")
+  .Produces<GetServiceResponse>(200)
   .WithOpenApi();
 
 app.MapPost("/services", async (IServiceRepository serviceRepository, CreateServiceRequest s) =>
@@ -82,6 +84,7 @@ app.MapPost("/services", async (IServiceRepository serviceRepository, CreateServ
 
 }).RequireCors("allow-all")
   .WithName("Create Service")
+  .Produces<IEnumerable<CreateServiceResponse>>(201)
   .WithOpenApi();
 
 app.MapDelete("/services/{serviceName}", async (IServiceRepository serviceRepository, string serviceName) =>
@@ -91,6 +94,7 @@ app.MapDelete("/services/{serviceName}", async (IServiceRepository serviceReposi
 
 }).RequireCors("allow-all")
   .WithName("Delete Service")
+  .Produces(204)
   .WithOpenApi();
 
 app.Run();
