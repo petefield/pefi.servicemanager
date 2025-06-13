@@ -1,5 +1,6 @@
 ﻿using MongoDB.Driver;
 using pefi.Rabbit;
+using pefi.servicemanager.Contracts.Messages;
 using System.Text.Json;
 using Service = pefi.servicemanager.Models.Service;
 
@@ -23,7 +24,7 @@ public class ServiceRepository(IMessageBroker messageBroker, IDataStore database
         await database.Add(databaseName, serviceCollectionName, service);
 
         using var topic = await messageBroker.CreateTopic("Events");
-        var message = JsonSerializer.Serialize(service);
+        var message = JsonSerializer.Serialize(new ServiceCreatedMessage(service.ServiceName));
         await topic.Publish("events.service.created", message);
 
         return service;
@@ -42,7 +43,7 @@ public class ServiceRepository(IMessageBroker messageBroker, IDataStore database
         {
             await database.Delete<Service>(databaseName, serviceCollectionName, s => s.ServiceName == serviceName);
             using var topic = await messageBroker.CreateTopic("Events");
-            var message = JsonSerializer.Serialize(service);
+            var message = JsonSerializer.Serialize(new ServiceDeletedMessage(service));
             await topic.Publish("events.service.deleted", message);
         }
     }
