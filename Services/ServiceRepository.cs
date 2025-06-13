@@ -37,7 +37,7 @@ public class ServiceRepository(IMessageBroker messageBroker, IDataStore database
 
     public async Task Delete(string serviceName)
     {
-        var service = GetService(serviceName);
+        var service = await GetService(serviceName);
         if (service != null)
         {
             await database.Delete<Service>(databaseName, serviceCollectionName, s => s.ServiceName == serviceName);
