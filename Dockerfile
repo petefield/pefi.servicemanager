@@ -19,7 +19,7 @@ RUN --mount=type=secret,id=github_token,env=GITHUB_TOKEN dotnet nuget add source
 RUN dotnet restore  "./pefi.servicemanager.csproj" 
 COPY . .
 WORKDIR "/src/."
-RUN dotnet build "./pefi.servicemanager.csproj"  -a $TARGETARCH  -o /app/build
+RUN dotnet build -a $TARGETARCH  "./pefi.servicemanager.csproj"   -o /app/build
 
 # This stage is used to publish the service project to be copied to the final stage
 FROM build AS publish
