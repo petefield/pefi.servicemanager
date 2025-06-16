@@ -9,7 +9,7 @@ EXPOSE 8081
 
 
 # This stage is used to build the service project
-FROM  --platform=$BUILDPLATFORM mcr.microsoft.com/dotnet/sdk:9.0 AS build
+FROM  --platform=$BUILDPLATFORM  mcr.microsoft.com/dotnet/sdk:9.0 AS build
 ARG BUILD_CONFIGURATION=Release
 WORKDIR /src
 COPY ["pefi.servicemanager.csproj", "."]
@@ -17,10 +17,10 @@ COPY ["pefi.servicemanager.csproj", "."]
 
 RUN --mount=type=secret,id=github_token,env=GITHUB_TOKEN dotnet nuget add source --username petefield --password $GITHUB_TOKEN --store-password-in-clear-text --name petefield "https://nuget.pkg.github.com/petefield/index.json"
 
-RUN dotnet restore "./pefi.servicemanager.csproj"
+RUN dotnet restore  "./pefi.servicemanager.csproj"  -a $TARGETARCH
 COPY . .
 WORKDIR "/src/."
-RUN dotnet build "./pefi.servicemanager.csproj" -c Debug -o /app/build
+RUN dotnet build "./pefi.servicemanager.csproj"  -a $TARGETARCH -c Debug -o /app/build
 
 # This stage is used to publish the service project to be copied to the final stage
 FROM build AS publish
