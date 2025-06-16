@@ -1,5 +1,6 @@
 ﻿using MongoDB.Driver;
 using MongoDB.Driver.Core.Extensions.DiagnosticSources;
+using pefi.Rabbit;
 
 namespace pefi.servicemanager.Persistance
 {
@@ -9,7 +10,9 @@ namespace pefi.servicemanager.Persistance
         {
             services.AddSingleton<IDataStore, MongoDatastore>();
 
-            services.AddSingleton<IMongoClient>(_ => {
+
+            services.AddSingleton<IMongoClient>(_ =>
+            {
                 var clientSettings = MongoClientSettings.FromConnectionString(connectionString);
                 clientSettings.ClusterConfigurator = cb => cb.Subscribe(new DiagnosticsActivityEventSubscriber());
                 return new MongoClient(clientSettings);
@@ -18,5 +21,13 @@ namespace pefi.servicemanager.Persistance
             return services;
 
         }
+
+
+
+        public static IServiceCollection AddPeFiMessaging(this IServiceCollection services, string address, string username, string password)
+            => services.AddSingleton<IMessageBroker>(sp => new MessageBroker(address, username, password));
+
+
     }
+
 }

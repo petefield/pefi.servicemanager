@@ -10,6 +10,7 @@ using pefi.servicemanager.Contracts;
 using pefi.servicemanager.Docker;
 using OpenTelemetry.Trace;
 using pefi.servicemanager.Services;
+using pefi.servicemanager.Persistance;
 
 var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddPefiObservability("http://192.168.0.5:4317", t=> t
@@ -17,21 +18,13 @@ builder.Services.AddPefiObservability("http://192.168.0.5:4317", t=> t
     .AddRabbitMQInstrumentation());
 
 builder.Logging.AddPefiLogging();
-
+builder.Services.AddPeFiPersistance("mongodb://192.168.0.42:27017");
+builder.Services.AddPeFiMessaging("192.168.0.42", "username", "password");
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 builder.Services.AddSingleton<WebhookEventProcessor, ProcessRegistryPackageWebhookProcessor>();
 builder.Services.AddSingleton<IDockerManager, DockerManager>();
 builder.Services.AddSingleton<IServiceRepository, ServiceRepository>();
-builder.Services.AddSingleton<IMessageBroker>( sp => new MessageBroker("192.168.0.5", "username", "password"));
-builder.Services.AddSingleton<IDataStore,  MongoDatastore>();
-builder.Services.AddSingleton<IMongoClient>(_ => {
-
-    var clientSettings = MongoClientSettings.FromConnectionString("mongodb://192.168.0.5:27017");
-    clientSettings.ClusterConfigurator = cb => cb.Subscribe(new DiagnosticsActivityEventSubscriber());
-    var mongoClient = new MongoClient(clientSettings);
-    return mongoClient;
-});
 builder.Services.AddCors(options =>
 {
     options.AddPolicy(name: "allow-all",
