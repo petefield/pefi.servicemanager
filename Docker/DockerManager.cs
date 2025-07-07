@@ -18,7 +18,9 @@ public class DockerManager : IDockerManager
     {
         _logger = logger;
         _dockerClient = new DockerClientConfiguration(
-            new Uri("http://host.docker.internal:2375"))
+        //    new Uri("http://host.docker.internal:2375"))
+                    new Uri("http://192.168.1.86:2375"))
+
             .CreateClient();
     }
 

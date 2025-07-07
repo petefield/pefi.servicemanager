@@ -70,7 +70,7 @@ app.MapGet("/services/{serviceName}", async (string serviceName, IServiceReposit
   .Produces<GetServiceResponse>(200)
   .WithOpenApi();
 
-app.MapPost("/services", async (IDockerManager dckrMgr,IServiceRepository serviceRepository, CreateServiceRequest s) =>
+app.MapPost("/services", async (ILogger<Program> logger, IDockerManager dckrMgr,IServiceRepository serviceRepository, CreateServiceRequest s) =>
 {
     var result = await serviceRepository.Add(s.ServiceName, s.HostName, s.ContainerPortNumber, s.HostPortNumber, s.DockerImageUrl);
 
@@ -78,8 +78,8 @@ app.MapPost("/services", async (IDockerManager dckrMgr,IServiceRepository servic
     var currentImage = await dckrMgr.GetImageFromImageUrl(s.DockerImageUrl);
     var currentContainer = await dckrMgr.GetContainerFromImageUrl(s.DockerImageUrl);
 
-    logger.LogInformation("Pulling image: {image_url}", packageUrl);
-    await dockerManager.CreateImage(packageUrl);
+    logger.LogInformation("Pulling image: {image_url}", s.DockerImageUrl);
+    await dckrMgr.CreateImage(s.DockerImageUrl);
 
     if (currentContainer != null)
     {
@@ -87,16 +87,16 @@ app.MapPost("/services", async (IDockerManager dckrMgr,IServiceRepository servic
     }
 
     logger.LogInformation("Creating container '{packageName}' from image '{image_url}'", s.ServiceName, s.DockerImageUrl);
-    var newContainer = await dockerManager.CreateContainer(s.DockerImageUrl, s.ServiceName, result.ContainerPortNumber, result.HostPortNumber);
+    var newContainer = await dckrMgr.CreateContainer(s.DockerImageUrl, s.ServiceName, result.ContainerPortNumber, result.HostPortNumber);
 
     if (newContainer == null)
     {
-        logger.LogError("Failed to create container from image: {image_url}", packageUrl);
+        logger.LogError("Failed to create container from image: {image_url}", s.DockerImageUrl);
         throw new Exception("Failed to create container");
     }
 
-    logger.LogInformation("Starting container {container_name}", packageName);
-    await dockerManager.StartContainer(newContainer.ID);
+    logger.LogInformation("Starting container {container_name}", s.ServiceName);
+    await dckrMgr.StartContainer(newContainer.ID);
 
     return Results.Created(string.Empty, CreateServiceResponse.From(result));
 
