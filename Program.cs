@@ -13,13 +13,13 @@ using pefi.servicemanager.Services;
 using pefi.servicemanager.Persistance;
 
 var builder = WebApplication.CreateBuilder(args);
-builder.Services.AddPefiObservability("http://192.168.0.5:4317", t=> t
+builder.Services.AddPefiObservability("http://192.168.1.86:4317", t=> t
     .AddSource("MongoDB.Driver.Core.Extensions.DiagnosticSources")
     .AddRabbitMQInstrumentation());
 
 builder.Logging.AddPefiLogging();
-builder.Services.AddPeFiPersistance("mongodb://192.168.0.42:27017");
-builder.Services.AddPeFiMessaging("192.168.0.42", "username", "password");
+builder.Services.AddPeFiPersistance("mongodb://192.168.1.86:27017");
+builder.Services.AddPeFiMessaging("192.168.1.86", "username", "password");
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 builder.Services.AddSingleton<WebhookEventProcessor, ProcessRegistryPackageWebhookProcessor>();
