@@ -70,9 +70,34 @@ app.MapGet("/services/{serviceName}", async (string serviceName, IServiceReposit
   .Produces<GetServiceResponse>(200)
   .WithOpenApi();
 
-app.MapPost("/services", async (IServiceRepository serviceRepository, CreateServiceRequest s) =>
+app.MapPost("/services", async (IDockerManager dckrMgr,IServiceRepository serviceRepository, CreateServiceRequest s) =>
 {
     var result = await serviceRepository.Add(s.ServiceName, s.HostName, s.ContainerPortNumber, s.HostPortNumber, s.DockerImageUrl);
+
+
+    var currentImage = await dckrMgr.GetImageFromImageUrl(s.DockerImageUrl);
+    var currentContainer = await dckrMgr.GetContainerFromImageUrl(s.DockerImageUrl);
+
+    logger.LogInformation("Pulling image: {image_url}", packageUrl);
+    await dockerManager.CreateImage(packageUrl);
+
+    if (currentContainer != null)
+    {
+        return Results.Conflict();
+    }
+
+    logger.LogInformation("Creating container '{packageName}' from image '{image_url}'", s.ServiceName, s.DockerImageUrl);
+    var newContainer = await dockerManager.CreateContainer(s.DockerImageUrl, s.ServiceName, result.ContainerPortNumber, result.HostPortNumber);
+
+    if (newContainer == null)
+    {
+        logger.LogError("Failed to create container from image: {image_url}", packageUrl);
+        throw new Exception("Failed to create container");
+    }
+
+    logger.LogInformation("Starting container {container_name}", packageName);
+    await dockerManager.StartContainer(newContainer.ID);
+
     return Results.Created(string.Empty, CreateServiceResponse.From(result));
 
 }).RequireCors("allow-all")
