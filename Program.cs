@@ -117,8 +117,10 @@ app.MapPost("/services", async (ILogger<Program> logger, IDockerManager dckrMgr,
   .Produces<IEnumerable<CreateServiceResponse>>(201)
   .WithOpenApi();
 
-app.MapDelete("/services/{serviceName}", async (IServiceRepository serviceRepository, string serviceName) =>
+app.MapDelete("/services/{serviceName}", async (IDockerManager dckrMgr, IServiceRepository serviceRepository, string serviceName) =>
 {
+    await dckrMgr.StopContainer(serviceName);
+    await dckrMgr.RemoveContainer(serviceName);
     await serviceRepository.Delete(serviceName);
     return Results.NoContent();
 
