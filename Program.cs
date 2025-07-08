@@ -1,25 +1,38 @@
 using dnsimple;
+using Microsoft.Extensions.Configuration;
 using MongoDB.Driver;
 using MongoDB.Driver.Core.Extensions.DiagnosticSources;
 using Octokit.Webhooks;
 using Octokit.Webhooks.AspNetCore;
+using OpenTelemetry.Trace;
 using pefi.observability;
-using pefi.Rabbit;
-using pefi.servicemanager;
 using pefi.servicemanager.Contracts;
 using pefi.servicemanager.Docker;
-using OpenTelemetry.Trace;
-using pefi.servicemanager.Services;
 using pefi.servicemanager.Persistance;
+using pefi.servicemanager.Services;
 
 var builder = WebApplication.CreateBuilder(args);
+builder.Configuration.AddEnvironmentVariables();
+
 builder.Services.AddPefiObservability("http://192.168.1.86:4317", t=> t
     .AddSource("MongoDB.Driver.Core.Extensions.DiagnosticSources")
     .AddRabbitMQInstrumentation());
 
 builder.Logging.AddPefiLogging();
-builder.Services.AddPeFiPersistance("mongodb://192.168.1.86:27017");
-builder.Services.AddPeFiMessaging("192.168.1.86", "username", "password");
+
+
+builder.Services.AddPeFiPersistance(options =>
+{
+    options.ConnectionString = builder.Configuration.GetSection("Persistance").GetValue<string>("connectionstring") ?? "";
+});
+
+builder.Services.AddPeFiMessaging(options => {
+    options.Username = builder.Configuration.GetSection("Messaging").GetValue<string>("username") ?? "";
+    options.Password = builder.Configuration.GetSection("Messaging").GetValue<string>("password") ?? "";
+    options.Address = builder.Configuration.GetSection("Messaging").GetValue<string>("address") ?? "";
+
+});
+
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 builder.Services.AddSingleton<WebhookEventProcessor, ProcessRegistryPackageWebhookProcessor>();
@@ -43,7 +56,6 @@ app.UseSwaggerUI();
 var a = app.UseRouting();
 app.UseCors();
 a.UseEndpoints(endpoints => endpoints.MapGitHubWebhooks("service-manager/newpackage"));
-
 
 app.MapGet("/services", async (IServiceRepository serviceRepository) =>
 {
