@@ -109,4 +109,19 @@ public class DockerManager : IDockerManager
     {
         await _dockerClient.Containers.RemoveContainerAsync(containerId, new ContainerRemoveParameters());
     }
+
+    public async Task<ContainerListResponse?> GetContainer(string name)
+    {
+        
+
+        IList<ContainerListResponse> containers = await _dockerClient.Containers.ListContainersAsync(
+                   new ContainersListParameters()
+                   {
+                       All = true
+                   });
+
+        var container = containers.FirstOrDefault(c => c.Names.Contains(name));
+
+        return container;
+    }
 }
