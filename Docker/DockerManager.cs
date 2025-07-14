@@ -112,15 +112,13 @@ public class DockerManager : IDockerManager
 
     public async Task<ContainerListResponse?> GetContainer(string name)
     {
-        
-
         IList<ContainerListResponse> containers = await _dockerClient.Containers.ListContainersAsync(
                    new ContainersListParameters()
                    {
                        All = true
                    });
 
-        var container = containers.FirstOrDefault(c => c.Names.Contains(name));
+        var container = containers.FirstOrDefault(c => c.Names.Select(x => x.TrimStart('/')).Contains(name));
 
         return container;
     }

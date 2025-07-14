@@ -1,13 +1,14 @@
 using dnsimple;
+using dnsimple.Services;
 using Microsoft.Extensions.Configuration;
 using MongoDB.Driver;
 using MongoDB.Driver.Core.Extensions.DiagnosticSources;
-using Octokit.Webhooks;
-using Octokit.Webhooks.AspNetCore;
+
 using OpenTelemetry.Trace;
 using pefi.observability;
 using pefi.servicemanager.Contracts;
 using pefi.servicemanager.Docker;
+using pefi.servicemanager.Models;
 using pefi.servicemanager.Persistance;
 using pefi.servicemanager.Services;
 
@@ -34,7 +35,6 @@ builder.Services.AddPeFiMessaging(options => {
 
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
-builder.Services.AddSingleton<WebhookEventProcessor, ProcessRegistryPackageWebhookProcessor>();
 builder.Services.AddSingleton<IDockerManager, DockerManager>();
 builder.Services.AddSingleton<IServiceRepository, ServiceRepository>();
 builder.Services.AddCors(options =>
@@ -52,9 +52,8 @@ var app = builder.Build();
 
 app.UseSwagger();
 app.UseSwaggerUI();
-var a = app.UseRouting();
+app.UseRouting();
 app.UseCors();
-a.UseEndpoints(endpoints => endpoints.MapGitHubWebhooks("service-manager/newpackage"));
 
 app.MapGet("/services", async (IServiceRepository serviceRepository) =>
 {
@@ -63,7 +62,8 @@ app.MapGet("/services", async (IServiceRepository serviceRepository) =>
     return result is null
         ? Results.Ok(Enumerable.Empty<GetServiceResponse>())
         : Results.Ok(result.Select(service => GetServiceResponse.From(service)));
-}).RequireCors("allow-all")
+})
+  .RequireCors("allow-all")
   .WithName("Get All Services")
   .Produces<IEnumerable<GetServiceResponse>>(200)
   .WithOpenApi();
@@ -76,7 +76,8 @@ app.MapGet("/services/{serviceName}", async (string serviceName, IServiceReposit
         ? Results.NotFound()
         : Results.Ok(GetServiceResponse.From(result));
 
-}).RequireCors("allow-all")
+})  
+  .RequireCors("allow-all")
   .WithName("Get Service By Name")
   .Produces<GetServiceResponse>(200)
   .WithOpenApi();
@@ -118,9 +119,103 @@ app.MapPost("/services", async (ILogger<Program> logger, IDockerManager dckrMgr,
 
     return Results.Created(string.Empty, CreateServiceResponse.From(result));
 
-}).RequireCors("allow-all")
+})
+  .RequireCors("allow-all")
   .WithName("Create Service")
   .Produces<IEnumerable<CreateServiceResponse>>(201)
+  .WithOpenApi();
+
+
+app.MapPost("services/{serviceName}/update", async (string serviceName, ILogger<Program> logger, IDockerManager dckrMgr, IServiceRepository serviceRepository) =>
+{
+
+    var service = await serviceRepository.GetService(serviceName);
+
+    if (service is null)
+    {
+        logger.LogError("Service not found: {service_name}", service.ServiceName);
+        return Results.NotFound();
+    }
+
+    logger.LogInformation("Service {service_name} is being updated.", service.ServiceName);
+
+
+    if (service.DockerImageUrl is null)
+    {
+        logger.LogError("Service {service_name} does not have a docker image path specified.", service.ServiceName);
+        return Results.UnprocessableEntity();
+    }
+
+
+    logger.LogInformation("Pulling image: {image_url}", service.DockerImageUrl);
+    await dckrMgr.CreateImage(service.DockerImageUrl);
+
+    
+    var container = await dckrMgr.GetContainer(service.ServiceName);
+
+    if (container != null)
+    {
+
+        if (container.State == "running")
+        {
+            logger.LogInformation("Stopping Container: {container_name}", container.Names.First());
+            await dckrMgr.StopContainer(container.ID); // Ensure the container is stopped before removing it
+        }
+        
+        logger.LogInformation("Removing Container: {container_name}", service.ServiceName);
+        await dckrMgr.RemoveContainer(container.ID);
+    }
+
+    logger.LogInformation("Creating container '{packageName}' from image '{image_url}'", service.ServiceName, service.DockerImageUrl);
+    var newContainer = await dckrMgr.CreateContainer(service.DockerImageUrl, service.ServiceName, service.ContainerPortNumber, service.HostPortNumber);
+
+    if (newContainer == null)
+    {
+        logger.LogError("Failed to create container from image: {image_url}", service.DockerImageUrl);
+        throw new Exception("Failed to create container");
+    }
+
+    logger.LogInformation("Starting container {container_name}", service.ServiceName);
+    await dckrMgr.StartContainer(newContainer.ID);
+    return Results.NoContent();
+
+}).RequireCors("allow-all")
+  .WithName("Update Service")
+  .Produces(204)
+  .WithOpenApi();
+
+app.MapPost("services/{serviceName}/restart", async (string serviceName, ILogger<Program> logger, IDockerManager dckrMgr, IServiceRepository serviceRepository) =>
+{
+
+    var service = await serviceRepository.GetService(serviceName);
+
+    if (service is null)
+    {
+        logger.LogError("Service not found: {service_name}", service.ServiceName);
+        return Results.NotFound();
+    }
+
+    logger.LogInformation("Service {service_name} is being restarted.", service.ServiceName);
+
+
+
+    var container = await dckrMgr.GetContainer(service.ServiceName);
+
+    if (container != null)
+    {
+        if (container.State == "running")
+        {
+            logger.LogInformation("Stopping Container: {container_name}", container.Names.First());
+            await dckrMgr.StopContainer(container.ID); // Ensure the container is stopped before removing it
+        }
+            await dckrMgr.StartContainer(container.ID);
+
+    }
+    return Results.NoContent();
+
+}).RequireCors("allow-all")
+  .WithName("Restart Service")
+  .Produces(204)
   .WithOpenApi();
 
 app.MapDelete("/services/{serviceName}", async (IDockerManager dckrMgr, IServiceRepository serviceRepository, string serviceName) =>
@@ -130,7 +225,8 @@ app.MapDelete("/services/{serviceName}", async (IDockerManager dckrMgr, IService
     await serviceRepository.Delete(serviceName);
     return Results.NoContent();
 
-}).RequireCors("allow-all")
+})
+  .RequireCors("allow-all")
   .WithName("Delete Service")
   .Produces(204)
   .WithOpenApi();

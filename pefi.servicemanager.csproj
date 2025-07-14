@@ -18,7 +18,6 @@
     <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="8.0.15" />
     <PackageReference Include="Microsoft.VisualStudio.Azure.Containers.Tools.Targets" Version="1.21.0" />
     <PackageReference Include="MongoDB.Driver" Version="3.4.0" />
-    <PackageReference Include="Octokit.Webhooks.AspNetCore" Version="2.4.1" />
     <PackageReference Include="pefi.messaging.rabbit" Version="1.0.0-ci-20250508.8" />
     <PackageReference Include="pefi.observability" Version="1.0.0-ci-20250530.3" />
     <PackageReference Include="RabbitMQ.Client.OpenTelemetry" Version="1.0.0-rc.1" />

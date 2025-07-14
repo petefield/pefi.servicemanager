@@ -27,6 +27,6 @@ namespace pefi.servicemanager.Models
         public string? HostPortNumber { get; set; } = HostPortNumber;
 
         [BsonElement(nameof(DockerImageUrl))]
-        public string? DockerImageUrl { get; } = DockerImageUrl;
+        public string? DockerImageUrl { get; set; } = DockerImageUrl;
     }
 }
