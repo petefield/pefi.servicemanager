@@ -16,10 +16,10 @@
       "launchUrl": "swagger",
       "environmentVariables": {
         "ASPNETCORE_ENVIRONMENT": "Development",
-        "Persistance__ConnectionString": "mongodb://192.168.1.86:27017",
+        "Persistance__ConnectionString": "mongodb://192.168.1.87:27017",
         "Messaging__Username": "username",
         "Messaging__Password": "password",
-        "Messaging__Address": "192.168.1.86"
+        "Messaging__Address": "192.168.1.87"
       },
       "dotnetRunMessages": true,
       "applicationUrl": "https://localhost:7068;http://localhost:5247"

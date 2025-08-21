@@ -8,7 +8,7 @@ namespace pefi.servicemanager.Services
 
         Task<IEnumerable<Service>> GetServices();
 
-        Task<Service> Add(string Name, string? hostName, string? containerPortNumber, string? hostPortNumber, string? dockerImageUrl);
+        Task<Service> Add(string Name, string? hostName, string? containerPortNumber, string? hostPortNumber, string? dockerImageUrl, string? networkName, Dictionary<string, string>? EnvironmentVariables = null );
 
         Task Delete(string serviceName);
 

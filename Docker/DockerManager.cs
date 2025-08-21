@@ -65,7 +65,12 @@ public class DockerManager : IDockerManager
         new Progress<JSONMessage>());
     }
 
-    public async Task<ContainerListResponse?> CreateContainer(string packageUrl, string packageName, string? containerPortNumber, string? hostPortNumber)
+    public async Task<ContainerListResponse?> CreateContainer(string packageUrl,
+        string packageName, 
+        string? containerPortNumber, 
+        string? hostPortNumber, 
+        string? networkName,
+        Dictionary<string, string>? environmentVariables = null)
     {
         var exposedPorts = containerPortNumber != null
             ? new Dictionary<string, EmptyStruct> { { containerPortNumber, new EmptyStruct() } }
@@ -75,14 +80,20 @@ public class DockerManager : IDockerManager
             ? new Dictionary<string, IList<PortBinding>> { { containerPortNumber, new List<PortBinding> { new() { HostPort = hostPortNumber } } } }
             : null;
 
+        var envs = environmentVariables?.Any() ?? false
+            ? environmentVariables.Select(x => $"{x.Key}:{x.Value}").ToList() 
+            : null; 
+
         var createContainerResponse = await _dockerClient.Containers.CreateContainerAsync(new CreateContainerParameters()
         {
             Image = packageUrl,
             Name = packageName,
             ExposedPorts = exposedPorts,
+            Env = envs,
             HostConfig = new HostConfig()
             {
-                PortBindings = portbindings
+                PortBindings = portbindings,
+                NetworkMode = networkName
             }
         });
 

@@ -16,10 +16,10 @@ public class ServiceRepository(IMessageBroker messageBroker, IDataStore database
         var services = await database.Get<Service>(databaseName, serviceCollectionName);
         return services;
     }
-    
-    public async Task<Service> Add(string name, string? hostName, string? containerPortNumber, string? hostPortNumber, string? dockerImageUrl)
+
+    public async Task<Service> Add(string name, string? hostName, string? containerPortNumber, string? hostPortNumber, string? dockerImageUrl, string? networkName, Dictionary<string, string>? environmentVariables = null)
     {
-        var service = new Service(name, hostName, containerPortNumber, hostPortNumber, dockerImageUrl);
+        var service = new Service(name, hostName, containerPortNumber, hostPortNumber, dockerImageUrl, networkName, environmentVariables);
 
         await database.Add(databaseName, serviceCollectionName, service);
 

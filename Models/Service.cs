@@ -1,5 +1,6 @@
 ﻿using MongoDB.Bson.Serialization.Attributes;
 using MongoDB.Bson;
+using Docker.DotNet.Models;
 
 namespace pefi.servicemanager.Models
 {
@@ -8,7 +9,9 @@ namespace pefi.servicemanager.Models
         string? HostName, 
         string? ContainerPortNumber, 
         string? HostPortNumber, 
-        string? DockerImageUrl)
+        string? DockerImageUrl, 
+        string? NetworkName,
+        Dictionary<string, string>? environmentVariables = null)
     {
 
         [BsonId]
@@ -28,5 +31,10 @@ namespace pefi.servicemanager.Models
 
         [BsonElement(nameof(DockerImageUrl))]
         public string? DockerImageUrl { get; set; } = DockerImageUrl;
+
+        [BsonElement(nameof(NetworkName))]
+        public string? NetworkName { get; set; } = NetworkName;
+
+        public Dictionary<string, string>? EnvironmentVariables { get; set; } = environmentVariables;
     }
 }

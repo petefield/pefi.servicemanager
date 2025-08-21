@@ -96,7 +96,7 @@ app.MapPost("/services", async (ILogger<Program> logger, IDockerManager dckrMgr,
     await dckrMgr.CreateImage(s.DockerImageUrl);
 
     logger.LogInformation("Creating container '{packageName}' from image '{image_url}'", s.ServiceName, s.DockerImageUrl);
-    var newContainer = await dckrMgr.CreateContainer(s.DockerImageUrl, s.ServiceName, s.ContainerPortNumber, s.HostPortNumber);
+    var newContainer = await dckrMgr.CreateContainer(s.DockerImageUrl, s.ServiceName, s.ContainerPortNumber, s.HostPortNumber, s.NetworkName, s.EnvironmentVariables);
 
     if (newContainer == null)
     {
@@ -115,7 +115,7 @@ app.MapPost("/services", async (ILogger<Program> logger, IDockerManager dckrMgr,
         logger.LogError(e,"Starting container failed {message}", e.Message);
 
     }
-    var result = await serviceRepository.Add(s.ServiceName, s.HostName, s.ContainerPortNumber, s.HostPortNumber, s.DockerImageUrl);
+    var result = await serviceRepository.Add(s.ServiceName, s.HostName, s.ContainerPortNumber, s.HostPortNumber, s.DockerImageUrl, s.NetworkName, s.EnvironmentVariables);
 
     return Results.Created(string.Empty, CreateServiceResponse.From(result));
 
@@ -167,7 +167,7 @@ app.MapPost("services/{serviceName}/update", async (string serviceName, ILogger<
     }
 
     logger.LogInformation("Creating container '{packageName}' from image '{image_url}'", service.ServiceName, service.DockerImageUrl);
-    var newContainer = await dckrMgr.CreateContainer(service.DockerImageUrl, service.ServiceName, service.ContainerPortNumber, service.HostPortNumber);
+    var newContainer = await dckrMgr.CreateContainer(service.DockerImageUrl, service.ServiceName, service.ContainerPortNumber, service.HostPortNumber, service.NetworkName);
 
     if (newContainer == null)
     {
@@ -218,10 +218,18 @@ app.MapPost("services/{serviceName}/restart", async (string serviceName, ILogger
   .Produces(204)
   .WithOpenApi();
 
-app.MapDelete("/services/{serviceName}", async (IDockerManager dckrMgr, IServiceRepository serviceRepository, string serviceName) =>
+app.MapDelete("/services/{serviceName}", async (ILogger<Program> logger, IDockerManager dckrMgr, IServiceRepository serviceRepository, string serviceName) =>
 {
-    await dckrMgr.StopContainer(serviceName);
-    await dckrMgr.RemoveContainer(serviceName);
+    try
+    {
+        await dckrMgr.StopContainer(serviceName);
+        await dckrMgr.RemoveContainer(serviceName);
+    }
+    catch (Exception ex) 
+    {
+        logger.LogError(ex, "Unable to stop service while deleting {serviceName}", serviceName);
+    }
+
     await serviceRepository.Delete(serviceName);
     return Results.NoContent();
 
