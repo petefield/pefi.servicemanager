@@ -9,7 +9,36 @@ on:
 
 jobs:
 
+  test:
+
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: read
+      packages: read
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Set up .NET
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: '9.0.x'
+
+    - name: Restore dependencies
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      run: dotnet restore pefi.servicemanager.sln
+
+    - name: Run unit tests
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      run: dotnet test pefi.servicemanager.Tests/pefi.servicemanager.Tests.csproj --no-restore --verbosity normal
+
   build:
+
+    needs: test
 
     runs-on: ubuntu-latest
 
