@@ -10,7 +10,7 @@ namespace pefi.servicemanager.Docker
             string? containerPortNumber, 
             string? hostPortNumber, 
             string? networkName, 
-            Dictionary<string, string> environmentVariables = null);
+            Dictionary<string, string>? environmentVariables = null);
 
         Task CreateImage(string packageUrl);
         Task DeleteImage(string packageUrl);
