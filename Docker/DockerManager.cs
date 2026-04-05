@@ -1,13 +1,12 @@
 ﻿using Docker.DotNet;
 using Docker.DotNet.Models;
-using Microsoft.Extensions.Logging.Configuration;
 
 namespace pefi.servicemanager.Docker;
 
 public class DockerManager : IDockerManager
 {
-    DockerClient _dockerClient;
-    ILogger<DockerManager> _logger;
+    private readonly DockerClient _dockerClient;
+    private readonly ILogger<DockerManager> _logger;
 
     public Dictionary<string, int> ports = new()
     {
@@ -81,7 +80,7 @@ public class DockerManager : IDockerManager
             : null;
 
         var envs = environmentVariables?.Any() ?? false
-            ? environmentVariables.Select(x => $"{x.Key}:{x.Value}").ToList() 
+            ? environmentVariables.Select(x => $"{x.Key}={x.Value}").ToList() 
             : null; 
 
         var createContainerResponse = await _dockerClient.Containers.CreateContainerAsync(new CreateContainerParameters()
@@ -99,7 +98,7 @@ public class DockerManager : IDockerManager
 
         var containers = await _dockerClient.Containers.ListContainersAsync(new ContainersListParameters { All = true });
 
-        _logger.LogInformation(packageName + " created with ID: " + createContainerResponse.ID + " from image: " + packageUrl + " with name: " + packageName);
+        _logger.LogInformation("{PackageName} created with ID: {ContainerId} from image: {PackageUrl}", packageName.ReplaceLineEndings(""), createContainerResponse.ID, packageUrl.ReplaceLineEndings(""));
 
         var newContainer = containers.Single(c => c.ID == createContainerResponse.ID);
 
