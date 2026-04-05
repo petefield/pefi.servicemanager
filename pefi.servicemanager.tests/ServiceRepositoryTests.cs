@@ -35,8 +35,8 @@ public class ServiceRepositoryTests
         _sut = new ServiceRepository(_mockMessageBroker.Object, _mockDataStore.Object);
     }
 
-    [Fact]
     // Returns all services from the data store
+    [Fact]
     public async Task GetServices_ReturnsAllServices()
     {
         var services = new List<Service>
@@ -54,8 +54,8 @@ public class ServiceRepositoryTests
         Assert.Equal(2, result.Count());
     }
 
-    [Fact]
     // Returns an empty collection when no services exist
+    [Fact]
     public async Task GetServices_ReturnsEmpty_WhenNoServicesExist()
     {
         _mockDataStore
@@ -67,8 +67,8 @@ public class ServiceRepositoryTests
         Assert.Empty(result);
     }
 
-    [Fact]
     // Returns the matching service when it exists
+    [Fact]
     public async Task GetService_ReturnsService_WhenFound()
     {
         var service = new Service("my-service", "host", "8080", "8080", "image:latest", "bridge");
@@ -83,8 +83,8 @@ public class ServiceRepositoryTests
         Assert.Equal("my-service", result.ServiceName);
     }
 
-    [Fact]
     // Returns null when the requested service does not exist
+    [Fact]
     public async Task GetService_ReturnsNull_WhenNotFound()
     {
         _mockDataStore
@@ -96,8 +96,8 @@ public class ServiceRepositoryTests
         Assert.Null(result);
     }
 
-    [Fact]
     // Persists the new service and publishes a service.created event
+    [Fact]
     public async Task Add_PersistsServiceAndPublishesCreatedEvent()
     {
         _mockDataStore
@@ -118,8 +118,8 @@ public class ServiceRepositoryTests
             Times.Once);
     }
 
-    [Fact]
     // Removes the service record and publishes a service.deleted event when the service exists
+    [Fact]
     public async Task Delete_RemovesServiceAndPublishesDeletedEvent_WhenServiceExists()
     {
         var service = new Service("my-service", "host", "8080", "8080", "image:latest", "bridge");
@@ -143,8 +143,8 @@ public class ServiceRepositoryTests
             Times.Once);
     }
 
-    [Fact]
     // Does not attempt to delete or publish an event when the service does not exist
+    [Fact]
     public async Task Delete_DoesNothing_WhenServiceNotFound()
     {
         _mockDataStore

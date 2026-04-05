@@ -98,7 +98,7 @@ public class DockerManager : IDockerManager
 
         var containers = await _dockerClient.Containers.ListContainersAsync(new ContainersListParameters { All = true });
 
-        _logger.LogInformation("{PackageName} created with ID: {ContainerId} from image: {PackageUrl}", packageName, createContainerResponse.ID, packageUrl);
+        _logger.LogInformation("{PackageName} created with ID: {ContainerId} from image: {PackageUrl}", packageName.ReplaceLineEndings(""), createContainerResponse.ID, packageUrl.ReplaceLineEndings(""));
 
         var newContainer = containers.Single(c => c.ID == createContainerResponse.ID);
 

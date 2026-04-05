@@ -133,7 +133,7 @@ app.MapPost("services/{serviceName}/update", async (string serviceName, ILogger<
 
     if (service is null)
     {
-        logger.LogError("Service not found: {service_name}", serviceName);
+        logger.LogError("Service not found: {service_name}", serviceName.ReplaceLineEndings(""));
         return Results.NotFound();
     }
 
@@ -191,7 +191,7 @@ app.MapPost("services/{serviceName}/restart", async (string serviceName, ILogger
 
     if (service is null)
     {
-        logger.LogError("Service not found: {service_name}", serviceName);
+        logger.LogError("Service not found: {service_name}", serviceName.ReplaceLineEndings(""));
         return Results.NotFound();
     }
 
